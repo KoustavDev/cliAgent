@@ -6,6 +6,7 @@ import sys
 from tools.base import Tool, ToolConfirmation, ToolInvocation, ToolKind, ToolResult
 from pydantic import BaseModel, Field
 import fnmatch
+from utils.environment import normalize_process_environment
 
 BLOCKED_COMMANDS = {
     "rm -rf /",
@@ -205,7 +206,7 @@ class ShellTool(Tool):
         ]
 
     def _build_environment(self) -> dict[str, str]:
-        env = os.environ.copy()
+        env = normalize_process_environment(os.environ)
 
         shell_environment = self.config.shell_environment
 
@@ -219,6 +220,8 @@ class ShellTool(Tool):
                     del env[k]
 
         if shell_environment.set_vars:
-            env.update(shell_environment.set_vars)
+            env.update(
+                normalize_process_environment(shell_environment.set_vars)
+            )
 
         return env

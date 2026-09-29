@@ -6,6 +6,7 @@ from typing import Any
 from config.config import MCPServerConfig
 from fastmcp import Client
 from fastmcp.client.transports import SSETransport, StdioTransport
+from utils.environment import normalize_process_environment
 
 
 class MCPServerStatus(str, Enum):
@@ -45,8 +46,8 @@ class MCPClient:
 
     def _create_transport(self) -> StdioTransport | SSETransport:
         if self.config.command:
-            env = os.environ.copy()
-            env.update(self.config.env)
+            env = normalize_process_environment(os.environ)
+            env.update(normalize_process_environment(self.config.env))
 
             return StdioTransport(
                 command=self.config.command,

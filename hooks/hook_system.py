@@ -7,6 +7,7 @@ import tempfile
 from typing import Any
 from config.config import Config, HookConfig, HookTrigger
 from tools.base import ToolResult
+from utils.environment import normalize_process_environment
 
 
 class HookSystem:
@@ -33,7 +34,7 @@ class HookSystem:
                 finally:
                     os.unlink(script_path)
         except Exception as e:
-            print(e)
+            print(f"Hook '{hook.name}' failed: {e}")
 
     async def _run_command(
         self,
@@ -46,7 +47,7 @@ class HookSystem:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=self.config.cwd,
-            env=env,
+            env=normalize_process_environment(env),
             start_new_session=True,
         )
 
@@ -94,13 +95,14 @@ class HookSystem:
     async def trigger_after_agent(
         self,
         user_message: str,
-        agent_response: str,
+        agent_response: str | None,
     ) -> None:
         env = self._build_env(
             HookTrigger.AFTER_AGENT,
             user_message=user_message,
         )
-        env["AI_AGENT_RESPONSE"] = agent_response
+        if agent_response is not None:
+            env["AI_AGENT_RESPONSE"] = agent_response
 
         for hook in self.hooks:
             if hook.trigger == HookTrigger.AFTER_AGENT:
