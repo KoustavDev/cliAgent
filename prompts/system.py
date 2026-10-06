@@ -293,11 +293,17 @@ You have access to the following tools to accomplish your tasks:
 
 5. **Memory**:
    - Use `memory` to store important user preferences
-   - Retrieve stored preferences when relevant"""
+   - Retrieve stored preferences when relevant
+
+6. **Tool Results**:
+   - Treat `(Tool completed successfully but returned no output.)` as a valid empty result, not as missing context or a failed tool call.
+   - After every tool call, provide a concise user-facing explanation of what the result means.
+   - Never finish a turn with an empty response after a tool call. If the result is empty, state what was checked and that no matching data or output was found.
+   - Do not repeat the same tool call solely because its successful result was empty unless the user asks for a broader or different search."""
 
     if subagent_tools:
         guidelines += """
-6. **Sub-Agents**:
+7. **Sub-Agents**:
    - Use sub-agents for complex codebase exploration, code review, or specialized multi-step tasks
    - Sub-agents run with isolated context and have limited tool access
    - Provide clear, specific goals when invoking sub-agents

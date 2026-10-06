@@ -83,7 +83,7 @@ class ToolResult:
 
     def to_model_output(self) -> str:
         if self.success:
-            return self.output
+            return self.output or "(Tool completed successfully but returned no output.)"
 
         return f"Error: {self.error}\n\nOutput:\n{self.output}"
 

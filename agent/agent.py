@@ -26,6 +26,7 @@ class Agent:
         await self.session.hook_system.trigger_before_agent(message)
         yield AgentEvent.agent_start(message)
         self.session.context_manager.add_user_message(message)
+        self.session.loop_detector.clear()
 
         final_response: str | None = None
 
@@ -154,11 +155,6 @@ class Agent:
                     tool_call.arguments,
                 )
 
-                # self.session.loop_detector.record_action(
-                #     "tool_call",
-                #     tool_name=tool_call.name,
-                #     args=tool_call.arguments,
-                # )
 
                 result = await self.session.tool_registry.invoke(
                     tool_call.name,

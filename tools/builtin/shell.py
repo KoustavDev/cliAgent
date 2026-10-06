@@ -1,6 +1,7 @@
 import asyncio
 import os
 from pathlib import Path
+import re
 import signal
 import sys
 from tools.base import Tool, ToolConfirmation, ToolInvocation, ToolKind, ToolResult
@@ -158,7 +159,7 @@ class ShellTool(Tool):
         )
 
     def _build_windows_command(self, command: str) -> list[str]:
-        """Run PowerShell cmdlets in PowerShell and other commands in cmd.exe."""
+        """Choose a Windows shell that matches the command's quoting syntax."""
         powershell_commands = (
             "mkdir",
             "md",
@@ -176,9 +177,16 @@ class ShellTool(Tool):
             "test-",
             "write-output",
             "write-host",
+            "node",
+            "npm",
+            "npx",
         )
         first_command = command.lstrip().lower()
-        if first_command.startswith(powershell_commands):
+        uses_powershell_syntax = (
+            ";" in command
+            or re.search(r"(?:^|\s)'[a-z]:\\", command, re.IGNORECASE) is not None
+        )
+        if first_command.startswith(powershell_commands) or uses_powershell_syntax:
             powershell = os.environ.get(
                 "WINDIR",
                 r"C:\Windows",
