@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
 from pydantic import BaseModel, Field
 
@@ -5,6 +10,7 @@ from utils.paths import resolve_path
 
 
 class ListDirParams(BaseModel):
+    """Represent listdirparams state and behavior."""
     path: str = Field(
         ".", description="Directory path to list (default: current directory)"
     )
@@ -15,12 +21,15 @@ class ListDirParams(BaseModel):
 
 
 class ListDirTool(Tool):
+    """Represent listdirtool state and behavior."""
     name = "list_dir"
     description = "List contents of a directory"
     kind = ToolKind.READ
     schema = ListDirParams
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Resolve the directory and format its immediate entries.
+        """Perform the execute operation and return its result."""
         params = ListDirParams(**invocation.params)
 
         dir_path = resolve_path(invocation.cwd, params.path)

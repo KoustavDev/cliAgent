@@ -1,3 +1,5 @@
+"""Asynchronous provider client with normalized streaming response events."""
+
 import asyncio
 from typing import Any, AsyncGenerator
 from openai import APIConnectionError, APIError, AsyncOpenAI, RateLimitError
@@ -15,12 +17,18 @@ from config.config import Config
 
 
 class LLMClient:
+    """Create completions and translate provider objects into agent events."""
+
     def __init__(self, config: Config) -> None:
+        """Store configuration and defer network-client creation."""
+
         self._client: AsyncOpenAI | None = None
         self._max_retries: int = 3
         self.config = config
 
     def get_client(self) -> AsyncOpenAI:
+        """Lazily create and cache the asynchronous provider client."""
+
         if self._client is None:
             self._client = AsyncOpenAI(
                 api_key=self.config.api_key,  
@@ -29,11 +37,15 @@ class LLMClient:
         return self._client
 
     async def close(self) -> None:
+        """Close the cached provider client and release its resources."""
+
         if self._client:
             await self._client.close()
             self._client = None
 
     def _build_tools(self, tools: list[dict[str, Any]]):
+        """Translate internal tool definitions to OpenAI function schemas."""
+
         return [
             {
                 "type": "function",
@@ -58,6 +70,8 @@ class LLMClient:
         tools: list[dict[str, Any]] | None = None,
         stream: bool = True,
     ) -> AsyncGenerator[StreamEvent, None]:
+        """Submit a request, retry transient failures, and yield normalized events."""
+
         client = self.get_client()
 
         kwargs = {
@@ -67,6 +81,7 @@ class LLMClient:
         }
 
         if tools:
+            # The provider expects tools wrapped as function definitions.
             kwargs["tools"] = self._build_tools(tools)
             kwargs["tool_choice"] = "auto"
 
@@ -81,6 +96,7 @@ class LLMClient:
                 return
             except RateLimitError as e:
                 if attempt < self._max_retries:
+                    # Exponential backoff limits pressure on transient provider failures.
                     wait_time = 2**attempt
                     await asyncio.sleep(wait_time)
                 else:
@@ -111,6 +127,8 @@ class LLMClient:
         client: AsyncOpenAI,
         kwargs: dict[str, Any],
     ) -> AsyncGenerator[StreamEvent, None]:
+        """Parse streamed chunks, including incremental tool-call arguments."""
+
         response = await client.chat.completions.create(**kwargs)
 
         finish_reason: str | None = None
@@ -119,6 +137,7 @@ class LLMClient:
 
         async for chunk in response:
             if hasattr(chunk, "usage") and chunk.usage:
+                # Usage can arrive in a final chunk without any choices.
                 usage = TokenUsage(
                     prompt_tokens=chunk.usage.prompt_tokens,
                     completion_tokens=chunk.usage.completion_tokens,
@@ -142,6 +161,7 @@ class LLMClient:
                 )
 
             if delta.tool_calls:
+                # Accumulate each indexed tool call before emitting its completion.
                 for tool_call_delta in delta.tool_calls:
                     idx = tool_call_delta.index
 
@@ -202,6 +222,8 @@ class LLMClient:
         client: AsyncOpenAI,
         kwargs: dict[str, Any],
     ) -> AsyncGenerator[StreamEvent, None]:
+        """Parse one complete provider response into the common event format."""
+
         response = await client.chat.completions.create(**kwargs)
         choice = response.choices[0]
         message = choice.message
@@ -213,6 +235,7 @@ class LLMClient:
             )
 
         if message.tool_calls:
+            # Non-streamed responses already contain complete tool-call arguments.
             for tc in message.tool_calls:
                 yield StreamEvent(
                     type=StreamEventType.TOOL_CALL_COMPLETE,

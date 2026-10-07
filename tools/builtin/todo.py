@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 import uuid
 from config.config import Config
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
@@ -5,22 +10,27 @@ from pydantic import BaseModel, Field
 
 
 class TodosParams(BaseModel):
+    """Represent todosparams state and behavior."""
     action: str = Field(..., description="Action: 'add', 'complete', 'list', 'clear'")
     id: str | None = Field(None, description="Todo ID (for complete)")
     content: str | None = Field(None, description="Todo content (for add)")
 
 
 class TodosTool(Tool):
+    """Represent todostool state and behavior."""
     name = "todos"
     description = "Manage a task list for the current session. Use this to track progress on multi-step tasks."
     kind = ToolKind.MEMORY
     schema = TodosParams
 
     def __init__(self, config: Config) -> None:
+        """Initialize the object with the configuration needed by later steps."""
         super().__init__(config)
         self._todos: dict[str, str] = {}
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Dispatch the requested todo operation against session storage.
+        """Perform the execute operation and return its result."""
         params = TodosParams(**invocation.params)
 
         if params.action.lower() == "add":

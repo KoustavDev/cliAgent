@@ -1,3 +1,5 @@
+"""Serialization helpers for saving, loading, and listing agent sessions and checkpoints."""
+
 from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
@@ -10,6 +12,7 @@ from config.loader import get_data_dir
 
 @dataclass
 class SessionSnapshot:
+    """Coordinate the sessionsnapshot behavior."""
     session_id: str
     created_at: datetime
     updated_at: datetime
@@ -18,6 +21,7 @@ class SessionSnapshot:
     total_usage: TokenUsage
 
     def to_dict(self) -> dict[str, Any]:
+        """To dict."""
         return {
             "session_id": self.session_id,
             "created_at": self.created_at.isoformat(),
@@ -29,6 +33,7 @@ class SessionSnapshot:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SessionSnapshot:
+        """From dict."""
         return cls(
             session_id=data["session_id"],
             created_at=datetime.fromisoformat(data["created_at"]),
@@ -40,7 +45,9 @@ class SessionSnapshot:
 
 
 class PersistenceManager:
+    """Coordinate the persistencemanager behavior."""
     def __init__(self):
+        """Initialize the object and its runtime dependencies."""
         self.data_dir = get_data_dir()
         self.sessions_dir = self.data_dir / "sessions"
         self.sessions_dir.mkdir(parents=True, exist_ok=True)
@@ -50,6 +57,7 @@ class PersistenceManager:
         os.chmod(self.checkpoints_dir, 0o700)
 
     def save_session(self, snapshot: SessionSnapshot) -> None:
+        """Save session."""
         file_path = self.sessions_dir / f"{snapshot.session_id}.json"
 
         with open(file_path, "w", encoding="utf-8") as fp:
@@ -58,6 +66,7 @@ class PersistenceManager:
         os.chmod(file_path, 0o600)
 
     def load_session(self, session_id: str) -> SessionSnapshot | None:
+        """Load session."""
         file_path = self.sessions_dir / f"{session_id}.json"
 
         if not file_path.exists():
@@ -69,6 +78,7 @@ class PersistenceManager:
         return SessionSnapshot.from_dict(data)
 
     def list_sessions(self) -> list[dict[str, Any]]:
+        """List sessions."""
         sessions = []
         for file_path in self.sessions_dir.glob("*.json"):
             with open(file_path, "r", encoding="utf-8") as fp:
@@ -86,6 +96,7 @@ class PersistenceManager:
         return sessions
 
     def save_checkpoint(self, snapshot: SessionSnapshot) -> str:
+        """Save checkpoint."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         checkpoint_id = f"{snapshot.session_id}_{timestamp}"
         file_path = self.checkpoints_dir / f"{checkpoint_id}.json"
@@ -96,6 +107,7 @@ class PersistenceManager:
         return checkpoint_id
 
     def load_checkpoint(self, checkpoint_id: str) -> SessionSnapshot | None:
+        """Load checkpoint."""
         file_path = self.checkpoints_dir / f"{checkpoint_id}.json"
 
         if not file_path.exists():

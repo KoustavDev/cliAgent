@@ -1,3 +1,10 @@
+"""End-to-end checks for the agent's major architectural boundaries.
+
+Each test exercises one pipeline concern in isolation, while the module entry
+point runs the checks in the same order a developer would troubleshoot them:
+loop prevention, context management, safety, persistence, and file editing.
+"""
+
 import asyncio
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +21,7 @@ from tools.base import ToolInvocation
 
 
 def test_loop_detector():
+    """Verify repeated actions are detected and detector state can be reset."""
     print("--- 1. Testing LoopDetector ---")
     detector = LoopDetector()
     
@@ -32,6 +40,7 @@ def test_loop_detector():
 
 
 def test_tool_pruning():
+    """Verify old tool output is replaced once the pruning threshold is met."""
     print("--- 2. Testing ContextManager Tool Output Pruning ---")
     cfg = Config(cwd=Path.cwd())
     ctx = ContextManager(config=cfg, user_memory=None, tools=[])
@@ -57,6 +66,7 @@ def test_tool_pruning():
 
 
 def test_safety_approval():
+    """Verify dangerous shell commands are rejected and safe ones are allowed."""
     print("--- 3. Testing ApprovalManager Blacklist & Safe Patterns ---")
     cwd = Path.cwd()
     approval = ApprovalManager(approval_policy=ApprovalPolicy.ON_REQUEST, cwd=cwd)
@@ -90,6 +100,7 @@ def test_safety_approval():
 
 
 def test_persistence_checkpoints():
+    """Verify a saved session checkpoint can be loaded and then cleaned up."""
     print("--- 4. Testing PersistenceManager Checkpoint / Restore ---")
     pm = PersistenceManager()
     
@@ -119,6 +130,7 @@ def test_persistence_checkpoints():
 
 
 async def test_file_edit_diff():
+    """Verify edit confirmation produces a diff before applying the file edit."""
     print("--- 5. Testing EditTool and Diff Generation ---")
     cfg = Config(cwd=Path.cwd())
     edit_tool = EditTool(cfg)

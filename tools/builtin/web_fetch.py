@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from urllib.parse import urlparse
 
 import httpx
@@ -6,6 +11,7 @@ from pydantic import BaseModel, Field
 
 
 class WebFetchParams(BaseModel):
+    """Represent webfetchparams state and behavior."""
     url: str = Field(..., description="URL to fetch (must be http:// or https://)")
     timeout: int = Field(
         30,
@@ -16,12 +22,15 @@ class WebFetchParams(BaseModel):
 
 
 class WebFetchTool(Tool):
+    """Represent webfetchtool state and behavior."""
     name = "web_fetch"
     description = "Fetch content from a URL. Returns the response body as text"
     kind = ToolKind.NETWORK
     schema = WebFetchParams
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Fetch the requested page and return normalized response content.
+        """Perform the execute operation and return its result."""
         params = WebFetchParams(**invocation.params)
 
         parsed = urlparse(params.url)

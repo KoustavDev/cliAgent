@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 import os
 from pathlib import Path
 import re
@@ -8,6 +13,7 @@ from utils.paths import is_binary_file, resolve_path
 
 
 class GlobParams(BaseModel):
+    """Represent globparams state and behavior."""
     pattern: str = Field(..., description="Glob pattern to match")
     path: str = Field(
         ".", description="Directory to search in (default: current directory)"
@@ -15,6 +21,7 @@ class GlobParams(BaseModel):
 
 
 class GlobTool(Tool):
+    """Represent globtool state and behavior."""
     name = "glob"
     description = (
         "Find files matching a glob pattern. Supports ** for recursive matching."
@@ -23,6 +30,8 @@ class GlobTool(Tool):
     schema = GlobParams
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Resolve the search root before collecting matching paths.
+        """Perform the execute operation and return its result."""
         params = GlobParams(**invocation.params)
 
         search_path = resolve_path(invocation.cwd, params.path)
@@ -58,6 +67,8 @@ class GlobTool(Tool):
         )
 
     def _find_files(self, search_path: Path) -> list[Path]:
+        # Step 2: Walk the root while skipping generated and hidden directories.
+        """Support the find files step used by the public workflow."""
         files = []
 
         for root, dirs, filenames in os.walk(search_path):

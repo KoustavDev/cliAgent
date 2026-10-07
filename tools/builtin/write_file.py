@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from tools.base import (
     FileDiff,
     Tool,
@@ -12,6 +17,7 @@ from utils.paths import ensure_parent_directory, resolve_path
 
 
 class WriteFileParams(BaseModel):
+    """Represent writefileparams state and behavior."""
     path: str = Field(
         ...,
         description="Path to the file to write (relative to working directory or absolute)",
@@ -23,6 +29,7 @@ class WriteFileParams(BaseModel):
 
 
 class WriteFileTool(Tool):
+    """Represent writefiletool state and behavior."""
     name = "write_file"
     description = (
         "Write content to a file. Creates the file if it doesn't exist, "
@@ -36,6 +43,8 @@ class WriteFileTool(Tool):
     async def get_confirmation(
         self, invocation: ToolInvocation
     ) -> ToolConfirmation | None:
+        # Step 1: Resolve the destination and prepare its proposed diff.
+        """Return the confirmation needed by the caller."""
         params = WriteFileParams(**invocation.params)
         path = resolve_path(invocation.cwd, params.path)
 
@@ -67,6 +76,8 @@ class WriteFileTool(Tool):
         )
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Ensure the parent exists, then write the requested content.
+        """Perform the execute operation and return its result."""
         params = WriteFileParams(**invocation.params)
         path = resolve_path(invocation.cwd, params.path)
 

@@ -1,3 +1,5 @@
+"""Session lifecycle, runtime services, and persisted user context for one agent conversation."""
+
 from datetime import datetime
 import json
 from typing import Any
@@ -16,7 +18,9 @@ from tools.registry import create_default_registry
 
 
 class Session:
+    """Coordinate the session behavior."""
     def __init__(self, config: Config):
+        """Initialize the object and its runtime dependencies."""
         self.config = config
         self.client = LLMClient(config=config)
         self.tool_registry = create_default_registry(config)
@@ -40,6 +44,7 @@ class Session:
         self.turn_count = 0
 
     async def initialize(self) -> None:
+        """Asynchronously initialize."""
         await self.mcp_manager.initialize()
         self.mcp_manager.register_tools(self.tool_registry)
 
@@ -51,6 +56,7 @@ class Session:
         )
 
     def _load_memory(self) -> str | None:
+        """Load memory."""
         data_dir = get_data_dir()
         data_dir.mkdir(parents=True, exist_ok=True)
         path = data_dir / "user_memory.json"
@@ -74,12 +80,14 @@ class Session:
             return None
 
     def increment_turn(self) -> int:
+        """Increment turn."""
         self.turn_count += 1
         self.updated_at = datetime.now()
 
         return self.turn_count
 
     def get_stats(self) -> dict[str, Any]:
+        """Get stats."""
         return {
             "session_id": self.session_id,
             "created_at": self.created_at.isoformat(),

@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 import asyncio
 from typing import Any
 from config.config import Config
@@ -7,6 +12,7 @@ from pydantic import BaseModel, Field
 
 
 class SubagentParams(BaseModel):
+    """Represent subagentparams state and behavior."""
     goal: str = Field(
         ..., description="The specific task or goal for the subagent to accomplish"
     )
@@ -14,6 +20,7 @@ class SubagentParams(BaseModel):
 
 @dataclass
 class SubagentDefinition:
+    """Represent subagentdefinition state and behavior."""
     name: str
     description: str
     goal_prompt: str
@@ -23,24 +30,31 @@ class SubagentDefinition:
 
 
 class SubagentTool(Tool):
+    """Represent subagenttool state and behavior."""
     def __init__(self, config: Config, definition: SubagentDefinition):
+        """Initialize the object with the configuration needed by later steps."""
         super().__init__(config)
         self.definition = definition
 
     @property
     def name(self) -> str:
+        """Perform the name operation."""
         return f"subagent_{self.definition.name}"
 
     @property
     def description(self) -> str:
+        """Perform the description operation."""
         return f"subagent_{self.definition.description}"
 
     schema = SubagentParams
 
     def is_mutating(self, params: dict[str, Any]) -> bool:
+        """Determine whether the requested value mutating."""
         return True
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Build a constrained agent configuration from the requested goal.
+        """Perform the execute operation and return its result."""
         from agent.agent import Agent
         from agent.events import AgentEventType
 
@@ -75,6 +89,7 @@ class SubagentTool(Tool):
         terminate_response = "goal"
 
         try:
+            # Step 2: Stream agent events until completion, timeout, or failure.
             async with Agent(subagent_config) as agent:
                 deadline = (
                     asyncio.get_event_loop().time() + self.definition.timeout_seconds
@@ -142,6 +157,7 @@ Do NOT modify any files.""",
 
 
 def get_default_subagent_definitions() -> list[SubagentDefinition]:
+    """Return the default subagent definitions needed by the caller."""
     return [
         CODEBASE_INVESTIGATOR,
         CODE_REVIEWER,

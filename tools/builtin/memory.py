@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 import json
 import uuid
 from config.config import Config
@@ -7,6 +12,7 @@ from pydantic import BaseModel, Field
 
 
 class MemoryParams(BaseModel):
+    """Represent memoryparams state and behavior."""
     action: str = Field(
         ..., description="Action: 'set', 'get', 'delete', 'list', 'clear'"
     )
@@ -17,12 +23,15 @@ class MemoryParams(BaseModel):
 
 
 class MemoryTool(Tool):
+    """Represent memorytool state and behavior."""
     name = "memory"
     description = "Store and retrieve persistent memory. Use this to remember user preferences, important context or notes."
     kind = ToolKind.MEMORY
     schema = MemoryParams
 
     def _load_memory(self) -> dict:
+        # Step 1: Read persisted memory, falling back to an empty store.
+        """Support the load memory step used by the public workflow."""
         data_dir = get_data_dir()
         data_dir.mkdir(parents=True, exist_ok=True)
         path = data_dir / "user_memory.json"
@@ -37,6 +46,8 @@ class MemoryTool(Tool):
             return {"entries": {}}
 
     def _save_memory(self, memory: dict) -> None:
+        # Step 1: Serialize the updated memory to its configured location.
+        """Support the save memory step used by the public workflow."""
         data_dir = get_data_dir()
         data_dir.mkdir(parents=True, exist_ok=True)
         path = data_dir / "user_memory.json"
@@ -44,6 +55,8 @@ class MemoryTool(Tool):
         path.write_text(json.dumps(memory, indent=2, ensure_ascii=False))
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Load memory, apply the requested operation, and persist changes.
+        """Perform the execute operation and return its result."""
         params = MemoryParams(**invocation.params)
 
         if params.action.lower() == "set":

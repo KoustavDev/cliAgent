@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 import asyncio
 import json
 import os
@@ -11,15 +16,20 @@ from utils.environment import normalize_process_environment
 
 
 class HookSystem:
+    """Represent hooksystem state and behavior."""
     def __init__(self, config: Config):
+        """Initialize the object with the configuration needed by later steps."""
         self.config = config
+        # Filter once at startup so disabled hooks never enter the event loops.
         self.hooks: list[HookConfig] = []
         if self.config.hooks_enabled:
             self.hooks = [hook for hook in self.config.hooks if hook.enabled]
 
     async def _run_hook(self, hook: HookConfig, env: dict[str, str]) -> None:
+        """Support the run hook step used by the public workflow."""
         try:
             if hook.command:
+                # Commands run directly; script hooks get a short-lived executable file.
                 await self._run_command(hook.command, hook.timeout_sec, env)
             else:
                 with tempfile.NamedTemporaryFile(
@@ -42,6 +52,8 @@ class HookSystem:
         timeout: float,
         env: dict[str, str],
     ) -> None:
+        """Support the run command step used by the public workflow."""
+        # Use a subprocess so hooks cannot block the agent's event loop.
         process = await asyncio.create_subprocess_shell(
             command,
             stdout=asyncio.subprocess.PIPE,
@@ -54,6 +66,7 @@ class HookSystem:
         try:
             await asyncio.wait_for(process.communicate(), timeout=timeout)
         except asyncio.TimeoutError:
+            # A timed-out hook is forcibly stopped, then reaped before returning.
             if sys.platform != "win32":
                 os.killpg(os.getpgid(process.pid), signal.SIGKILL)
             else:
@@ -67,6 +80,7 @@ class HookSystem:
         user_message: str | None = None,
         error: Exception | None = None,
     ) -> dict[str, str]:
+        """Support the build env step used by the public workflow."""
         env = os.environ.copy()
         env["AI_AGENT_TRIGGER"] = trigger.value
         env["AI_AGENT_CWD"] = str(self.config.cwd)
@@ -83,6 +97,8 @@ class HookSystem:
         return env
 
     async def trigger_before_agent(self, user_message: str) -> None:
+        """Run hooks for the before agent lifecycle event."""
+        # Build event metadata once and pass the same snapshot to matching hooks.
         env = self._build_env(
             HookTrigger.BEFORE_AGENT,
             user_message=user_message,
@@ -97,6 +113,7 @@ class HookSystem:
         user_message: str,
         agent_response: str | None,
     ) -> None:
+        """Run hooks for the after agent lifecycle event."""
         env = self._build_env(
             HookTrigger.AFTER_AGENT,
             user_message=user_message,
@@ -113,6 +130,7 @@ class HookSystem:
         tool_name: str,
         tool_params: dict[str, Any],
     ) -> None:
+        """Run hooks for the before tool lifecycle event."""
         env = self._build_env(HookTrigger.BEFORE_TOOL, tool_name=tool_name)
         env["AI_AGENT_TOOL_PARAMS"] = json.dumps(tool_params)
 
@@ -126,6 +144,7 @@ class HookSystem:
         tool_params: dict[str, Any],
         tool_result: ToolResult,
     ) -> None:
+        """Run hooks for the after tool lifecycle event."""
         env = self._build_env(HookTrigger.AFTER_TOOL, tool_name=tool_name)
         env["AI_AGENT_TOOL_PARAMS"] = json.dumps(tool_params)
         env["AI_AGENT_TOOL_RESULT"] = tool_result.to_model_output()
@@ -135,6 +154,7 @@ class HookSystem:
                 await self._run_hook(hook, env)
 
     async def trigger_on_error(self, error: Exception) -> None:
+        """Run hooks for the on error lifecycle event."""
         env = self._build_env(HookTrigger.ON_ERROR, error=error)
 
         for hook in self.hooks:

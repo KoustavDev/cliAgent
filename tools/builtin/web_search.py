@@ -1,9 +1,15 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
 from pydantic import BaseModel, Field
 from duckduckgo_search import DDGS
 
 
 class WebSearchParams(BaseModel):
+    """Represent websearchparams state and behavior."""
     query: str = Field(..., description="Search query")
     max_results: int = Field(
         10,
@@ -14,12 +20,15 @@ class WebSearchParams(BaseModel):
 
 
 class WebSearchTool(Tool):
+    """Represent websearchtool state and behavior."""
     name = "web_search"
     description = "Search the web for information. Returns search results with titles, URLs and snippets"
     kind = ToolKind.NETWORK
     schema = WebSearchParams
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Submit the query and format the search provider response.
+        """Perform the execute operation and return its result."""
         params = WebSearchParams(**invocation.params)
 
         try:

@@ -1,3 +1,5 @@
+"""Manual smoke test for shell execution on the host platform."""
+
 import asyncio
 from pathlib import Path
 from config.config import Config
@@ -5,6 +7,7 @@ from tools.base import ToolInvocation
 from tools.builtin.shell import ShellTool
 
 async def test():
+    """Create, inspect, and remove a path containing spaces."""
     config = Config(cwd=Path.cwd())
     shell = ShellTool(config)
 

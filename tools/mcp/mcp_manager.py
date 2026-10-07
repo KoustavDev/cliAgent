@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 import asyncio
 from typing import Any
 from config.config import Config
@@ -7,12 +12,16 @@ from tools.registry import ToolRegistry
 
 
 class MCPManager:
+    """Represent mcpmanager state and behavior."""
     def __init__(self, config: Config):
+        """Initialize the object with the configuration needed by later steps."""
         self.config = config
         self._clients: dict[str, MCPClient] = {}
         self._initialized = False
 
     async def initialize(self) -> None:
+        # Step 1: Create clients for enabled servers and connect concurrently.
+        """Perform the initialize operation and return its result."""
         if self._initialized:
             return
 
@@ -44,6 +53,8 @@ class MCPManager:
         self._initialized = True
 
     def register_tools(self, registry: ToolRegistry) -> int:
+        # Step 1: Expose tools from every connected server in the registry.
+        """Perform the register tools operation."""
         count = 0
 
         for client in self._clients.values():
@@ -63,6 +74,8 @@ class MCPManager:
         return count
 
     async def shutdown(self) -> None:
+        # Step 1: Disconnect all clients and reset manager state.
+        """Perform the shutdown operation and return its result."""
         disconnection_tasks = [client.disconnect() for client in self._clients.values()]
 
         await asyncio.gather(*disconnection_tasks, return_exceptions=True)
@@ -71,6 +84,7 @@ class MCPManager:
         self._initialized = False
 
     def get_all_servers(self) -> list[dict[str, Any]]:
+        """Return the all servers needed by the caller."""
         servers = []
         for name, client in self._clients.items():
             server_info = {

@@ -1,3 +1,5 @@
+"""Build the system prompt sections supplied to the coding agent."""
+
 from datetime import datetime
 import platform
 from config.config import Config
@@ -9,6 +11,7 @@ def get_system_prompt(
     user_memory: str | None = None,
     tools: list[Tool] | None = None,
 ) -> str:
+    """Assemble identity, environment, policy, and instruction sections."""
     parts = []
 
     # Identity and role
@@ -215,6 +218,8 @@ If completing the user's task requires writing or modifying files, your code and
 
 
 def _get_developer_instructions_section(instructions: str) -> str:
+    """Wrap repository-provided developer instructions in a prompt section."""
+
     return f"""# Project Instructions
 
 The following instructions were provided by the project maintainers:
@@ -225,6 +230,8 @@ Follow these instructions carefully as they contain important context about this
 
 
 def _get_user_instructions_section(instructions: str) -> str:
+    """Wrap user-provided instructions in a prompt section."""
+
     return f"""# User Instructions
 
 The user has provided the following custom instructions:
@@ -314,6 +321,7 @@ You have access to the following tools to accomplish your tasks:
 
 
 def get_compression_prompt() -> str:
+    """Return the required structure for a context-compression handoff."""
     return """Provide a detailed continuation prompt for resuming this work. The new session will NOT have access to our conversation history.
 
 IMPORTANT: Structure your response EXACTLY as follows:
@@ -343,6 +351,7 @@ Be extremely specific with file paths and function names. The goal is to allow s
 
 
 def create_loop_breaker_prompt(loop_description: str) -> str:
+    """Explain a detected repetition and request a different approach."""
     return f"""
 [SYSTEM NOTICE: Loop Detected]
 

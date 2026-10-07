@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from tools.builtin.edit_file import EditTool
 from tools.builtin.glob import GlobTool
 from tools.builtin.grep import GrepTool
@@ -26,6 +31,8 @@ __all__ = [
 
 
 def get_all_builtin_tools() -> list[type]:
+    # Step 1: Return the standard tool classes used by the default registry.
+    """Return the all builtin tools needed by the caller."""
     return [
         ReadFileTool,
         WriteFileTool,

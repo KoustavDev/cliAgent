@@ -1,3 +1,5 @@
+"""Conversation compaction utilities that turn long histories into concise summaries."""
+
 from typing import Any
 from client.llm_client import LLMClient
 from client.response import StreamEventType, TokenUsage
@@ -6,10 +8,13 @@ from prompts.system import get_compression_prompt
 
 
 class ChatCompactor:
+    """Coordinate the chatcompactor behavior."""
     def __init__(self, client: LLMClient):
+        """Initialize the object and its runtime dependencies."""
         self.client = client
 
     def _format_history_for_compaction(self, messages: list[dict[str, Any]]) -> str:
+        """Format history for compaction."""
         output = ["Here is the conversation that needs to be continue: \n"]
 
         for msg in messages:
@@ -57,6 +62,7 @@ class ChatCompactor:
     async def compress(
         self, context_manager: ContextManager
     ) -> tuple[str | None, TokenUsage | None]:
+        """Asynchronously compress."""
         messages = context_manager.get_messages()
 
         if len(messages) < 3:

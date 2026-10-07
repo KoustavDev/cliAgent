@@ -1,3 +1,5 @@
+"""Command-line entry point for single-message and interactive agent sessions."""
+
 import asyncio
 from pathlib import Path
 import sys
@@ -15,17 +17,21 @@ console = get_console()
 
 
 class CLI:
+    """Dispatch commands and render agent events for CLI users."""
     def __init__(self, config: Config):
+        """Initialize the object and its runtime dependencies."""
         self.agent: Agent | None = None
         self.config = config
         self.tui = TUI(config, console)
 
     async def run_single(self, message: str) -> str | None:
+        """Run one non-interactive message and return the final response."""
         async with Agent(self.config) as agent:
             self.agent = agent
             return await self._process_message(message)
 
     async def run_interactive(self) -> str | None:
+        """Read and process messages until the user exits the interactive loop."""
         self.tui.print_welcome(
             "AI Agent",
             lines=[
@@ -48,6 +54,7 @@ class CLI:
                     if not user_input:
                         continue
 
+                    # Slash-prefixed input is handled locally instead of sent to the model.
                     if user_input.startswith("/"):
                         should_continue = await self._handle_command(user_input)
                         if not should_continue:
@@ -63,6 +70,7 @@ class CLI:
         console.print("\n[dim]Goodbye![/dim]")
 
     def _get_tool_kind(self, tool_name: str) -> str | None:
+        """Get tool kind."""
         tool_kind = None
         tool = self.agent.session.tool_registry.get(tool_name)
         if not tool:
@@ -73,6 +81,7 @@ class CLI:
         return tool_kind
 
     async def _process_message(self, message: str) -> str | None:
+        """Consume agent events and route text, errors, and tool status to the TUI."""
         if not self.agent:
             return None
 
@@ -122,6 +131,7 @@ class CLI:
         return final_response
 
     async def _handle_command(self, command: str) -> bool:
+        """Dispatch one slash command and return whether the session should continue."""
         cmd = command.lower().strip()
         parts = cmd.split(maxsplit=1)
         cmd_name = parts[0]
@@ -321,6 +331,7 @@ def main(
     prompt: str | None,
     cwd: Path | None,
 ):
+    """Main."""
     try:
         config = load_config(cwd=cwd)
     except Exception as e:

@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from pathlib import Path
 from tools.base import (
     FileDiff,
@@ -13,6 +18,7 @@ from utils.paths import ensure_parent_directory, resolve_path
 
 
 class EditParams(BaseModel):
+    """Represent editparams state and behavior."""
     path: str = Field(
         ...,
         description="Path to the file to edit (relative to working directory or absolute path)",
@@ -31,6 +37,7 @@ class EditParams(BaseModel):
 
 
 class EditTool(Tool):
+    """Represent edittool state and behavior."""
     name = "edit"
     description = (
         "Edit a file by replacing text. The old_string must match exactly "
@@ -45,6 +52,7 @@ class EditTool(Tool):
         self,
         invocation: ToolInvocation,
     ) -> ToolConfirmation | None:
+        """Return the confirmation needed by the caller."""
         params = EditParams(**invocation.params)
         path = resolve_path(invocation.cwd, params.path)
 
@@ -88,6 +96,8 @@ class EditTool(Tool):
         )
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Resolve the requested path and distinguish creation from editing.
+        """Perform the execute operation and return its result."""
         params = EditParams(**invocation.params)
         path = resolve_path(invocation.cwd, params.path)
 
@@ -118,6 +128,7 @@ class EditTool(Tool):
             )
 
         old_content = path.read_text(encoding="utf-8")
+        # Step 2: Apply the exact replacement and preserve the resulting diff.
 
         if not params.old_string:
             return ToolResult.error_result(
@@ -179,6 +190,7 @@ class EditTool(Tool):
         )
 
     def _no_match_error(self, old_string: str, content: str, path: Path) -> ToolResult:
+        """Support the no match error step used by the public workflow."""
         lines = content.splitlines()
 
         partial_matches = []

@@ -1,7 +1,11 @@
+"""Token counting and deterministic text truncation utilities."""
+
 import tiktoken
 
 
 def get_tokenizer(model: str):
+    """Return an encoder for ``model``, using a stable fallback if needed."""
+    # Step 1: Prefer the model-specific tokenizer and use a stable fallback.
     try:
         encoding = tiktoken.encoding_for_model(model)
         return encoding.encode
@@ -11,6 +15,8 @@ def get_tokenizer(model: str):
 
 
 def count_tokens(text: str, model: str = "gpt-4") -> int:
+    """Count tokens with the selected encoder or a character estimate."""
+    # Step 1: Count with the selected tokenizer, falling back to estimation.
     tokenizer = get_tokenizer(model)
 
     if tokenizer:
@@ -20,6 +26,7 @@ def count_tokens(text: str, model: str = "gpt-4") -> int:
 
 
 def estimate_tokens(text: str) -> int:
+    """Estimate token count using the project's four-characters heuristic."""
     return max(1, len(text) // 4)
 
 
@@ -30,6 +37,8 @@ def truncate_text(
     suffix: str = "\n... [truncated]",
     preserve_lines: bool = True,
 ):
+    """Truncate text to a token budget while optionally preserving lines."""
+    # Step 1: Reserve space for the suffix before selecting a truncation strategy.
     current_tokens = count_tokens(text, model)
     if current_tokens <= max_tokens:
         return text
@@ -47,6 +56,8 @@ def truncate_text(
 
 
 def _truncate_by_lines(text: str, target_tokens: int, suffix: str, model: str) -> str:
+    """Keep complete lines until the requested token budget is reached."""
+    # Step 1: Keep complete lines while the token budget permits.
     lines = text.split("\n")
     result_lines: list[str] = []
     current_tokens = 0
@@ -66,6 +77,7 @@ def _truncate_by_lines(text: str, target_tokens: int, suffix: str, model: str) -
 
 
 def _truncate_by_chars(text: str, target_tokens: int, suffix: str, model: str) -> str:
+    """Use binary search to find the longest fitting character prefix."""
     # Binary search for the right length
     low, high = 0, len(text)
 

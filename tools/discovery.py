@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 import importlib.util
 import inspect
 from pathlib import Path
@@ -10,11 +15,15 @@ from tools.registry import ToolRegistry
 
 
 class ToolDiscoveryManager:
+    """Represent tooldiscoverymanager state and behavior."""
     def __init__(self, config: Config, registry: ToolRegistry):
+        """Initialize the object with the configuration needed by later steps."""
         self.config = config
         self.registry = registry
 
     def _load_tool_modules(self, file_path: Path) -> Any:
+        # Step 1: Load a Python file under a unique module name.
+        """Support the load tool modules step used by the public workflow."""
         module_name = f"discovered_tool_{file_path.stem}"
         spec = importlib.util.spec_from_file_location(module_name, file_path)
 
@@ -28,6 +37,8 @@ class ToolDiscoveryManager:
         return module
 
     def _find_tool_classes(self, module: Any) -> list[Tool]:
+        # Step 1: Select concrete Tool subclasses defined by this module.
+        """Support the find tool classes step used by the public workflow."""
         tools: list[Tool] = []
 
         for name in dir(module):
@@ -43,6 +54,8 @@ class ToolDiscoveryManager:
         return tools
 
     def discover_from_directory(self, directory: Path) -> None:
+        # Step 1: Inspect the directory's user-tool folder and register discoveries.
+        """Perform the discover from directory operation."""
         tool_dir = directory / ".ai-agent" / "tools"
 
         if not tool_dir.exists() or not tool_dir.is_dir():
@@ -66,5 +79,7 @@ class ToolDiscoveryManager:
                 continue
 
     def discover_all(self) -> None:
+        # Step 1: Search both the project and user configuration directories.
+        """Perform the discover all operation."""
         self.discover_from_directory(self.config.cwd)
         self.discover_from_directory(get_config_dir())

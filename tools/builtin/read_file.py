@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from pydantic import BaseModel, Field
 
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
@@ -7,6 +12,7 @@ from utils.text import count_tokens, truncate_text
 
 class ReadFileParams(BaseModel):
 
+    """Represent readfileparams state and behavior."""
     path: str = Field(
         ...,
         description="Path to the file to read (relative to working directory or absolute)",
@@ -26,6 +32,7 @@ class ReadFileParams(BaseModel):
 
 
 class ReadFileTool(Tool):
+    """Represent readfiletool state and behavior."""
     name = "read_file"
     description = (
         "Read the contents of a text file. Returns the file content with line numbers. "
@@ -40,6 +47,8 @@ class ReadFileTool(Tool):
     MAX_OUTPUT_TOKENS = 25000
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Resolve the file and return its readable contents.
+        """Perform the execute operation and return its result."""
         params = ReadFileParams(**invocation.params)
         path = resolve_path(invocation.cwd, params.path)
 

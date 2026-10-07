@@ -1,7 +1,10 @@
+"""Scenario tests for the loop detector's failure and repetition heuristics."""
+
 from context.loop_detector import LoopDetector
 
 
 def run_tests():
+    """Run loop-detection scenarios from narrow repetition to varied actions."""
     detector = LoopDetector()
 
     # --- Test 1: Catches Consecutive Failures with Slightly Varied Arguments ---

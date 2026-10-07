@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -8,6 +13,7 @@ from tools.base import ToolConfirmation
 
 
 class ApprovalDecision(str, Enum):
+    """Represent approvaldecision state and behavior."""
     APPROVED = "approved"
     REJECTED = "rejected"
     NEEDS_CONFIRMATION = "needs_confirmation"
@@ -16,6 +22,7 @@ class ApprovalDecision(str, Enum):
 @dataclass
 class ApprovalContext:
 
+    """Represent approvalcontext state and behavior."""
     tool_name: str
     params: dict[str, Any]
     is_mutating: bool
@@ -74,6 +81,7 @@ SAFE_PATTERNS = [
 
 
 def is_dangerous_command(command: str) -> bool:
+    """Determine whether the requested value dangerous command."""
     for pattern in DANGEROUS_PATTERNS:
         if re.search(pattern, command, re.IGNORECASE):
             return True
@@ -82,6 +90,7 @@ def is_dangerous_command(command: str) -> bool:
 
 
 def is_safe_command(command: str) -> bool:
+    """Determine whether the requested value safe command."""
     for pattern in SAFE_PATTERNS:
         if re.search(pattern, command, re.IGNORECASE):
             return True
@@ -90,20 +99,25 @@ def is_safe_command(command: str) -> bool:
 
 
 class ApprovalManager:
+    """Represent approvalmanager state and behavior."""
     def __init__(
         self,
         approval_policy: ApprovalPolicy,
         cwd: Path,
         confirmation_callback: Callable[[ToolConfirmation], bool] | None = None,
     ) -> None:
+        """Initialize the object with the configuration needed by later steps."""
         self.approval_policy = approval_policy
         self.cwd = cwd
         self.confirmation_callback = confirmation_callback
 
     def _assess_command_safety(self, command: str) -> ApprovalDecision:
+        """Support the assess command safety step used by the public workflow."""
+        # Step 1: Apply the selected policy before considering path-level access.
         if self.approval_policy == ApprovalPolicy.YOLO:
             return ApprovalDecision.APPROVED
 
+        # Step 2: Reject commands on the deny-list even when they look otherwise valid.
         if is_dangerous_command(command):
             return ApprovalDecision.REJECTED
 
@@ -127,15 +141,20 @@ class ApprovalManager:
         return ApprovalDecision.NEEDS_CONFIRMATION
 
     async def check_approval(self, context: ApprovalContext) -> ApprovalDecision:
+        """Perform the check approval operation and return its result."""
+        # Read-only tools do not need an approval prompt.
         if not context.is_mutating:
             return ApprovalDecision.APPROVED
 
         if context.command:
+            # Commands are assessed first so dangerous operations cannot be
+            # approved merely because their working directory is allowed.
             decision = self._assess_command_safety(context.command)
             if decision != ApprovalDecision.NEEDS_CONFIRMATION:
                 return decision
 
         for path in context.affected_paths:
+            # Keep writes inside the configured workspace unless explicitly confirmed.
             path_decision = ApprovalDecision.NEEDS_CONFIRMATION
             if path.is_relative_to(self.cwd):
                 path_decision = ApprovalDecision.APPROVED
@@ -150,6 +169,7 @@ class ApprovalManager:
         return ApprovalDecision.APPROVED
 
     def request_confirmation(self, confirmation: ToolConfirmation) -> bool:
+        """Perform the request confirmation operation and return its result."""
         if self.confirmation_callback:
             result = self.confirmation_callback(confirmation)
             return result

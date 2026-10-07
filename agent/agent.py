@@ -1,3 +1,5 @@
+"""Agent orchestration: stream model responses, invoke tools, and continue the agentic loop."""
+
 from __future__ import annotations
 import json
 from typing import AsyncGenerator, Callable
@@ -11,18 +13,21 @@ from utils.text import count_tokens
 
 
 class Agent:
+    """Coordinate one conversation between the model, tools, and user interface."""
     def __init__(
         self,
         config: Config,
         confirmation_callback: Callable[[ToolConfirmation], bool] | None = None,
         budget_confirmation_callback: Callable[[str], bool] | None = None,
     ):
+        """Create a session and attach optional confirmation callbacks."""
         self.config = config
         self.session: Session | None = Session(self.config)
         self.session.approval_manager.confirmation_callback = confirmation_callback
         self.budget_confirmation_callback = budget_confirmation_callback
 
     async def run(self, message: str):
+        """Run one user turn while streaming lifecycle, text, and tool events."""
         await self.session.hook_system.trigger_before_agent(message)
         yield AgentEvent.agent_start(message)
         self.session.context_manager.add_user_message(message)
@@ -40,15 +45,17 @@ class Agent:
         yield AgentEvent.agent_end(final_response)
 
     async def _agentic_loop(self) -> AsyncGenerator[AgentEvent, None]:
+        """Repeat model and tool turns until the model produces a final response."""
         max_turns = self.config.max_turns
         prompt_tokens_used = 0
         budget_override = False
 
+        # Each turn lets the model either answer or request tools before continuing.
         for turn_num in range(max_turns):
             self.session.increment_turn()
             response_text = ""
 
-            # check for context overflow
+            # Compress older history before sending another request near the limit.
             if self.session.context_manager.needs_compression():
                 summary, usage = await self.session.chat_compactor.compress(
                     self.session.context_manager
@@ -95,6 +102,7 @@ class Agent:
                 self.session.context_manager.get_messages(),
                 tools=tool_schemas if tool_schemas else None,
             ):
+                # Translate provider stream events into the smaller UI-facing event set.
                 if event.type == StreamEventType.TEXT_DELTA:
                     if event.text_delta:
                         content = event.text_delta.content
@@ -204,6 +212,7 @@ class Agent:
         yield AgentEvent.agent_error(f"Maximum turns ({max_turns}) reached")
 
     async def __aenter__(self) -> Agent:
+        """Initialize the asynchronous resource context and return this agent."""
         await self.session.initialize()
         return self
 
@@ -213,6 +222,7 @@ class Agent:
         exc_val,
         exc_tb,
     ) -> None:
+        """Release asynchronous resources when leaving the context."""
         if self.session and self.session.client and self.session.mcp_manager:
             await self.session.client.close()
             await self.session.mcp_manager.shutdown()

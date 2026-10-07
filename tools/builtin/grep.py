@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 import os
 from pathlib import Path
 import re
@@ -8,6 +13,7 @@ from utils.paths import is_binary_file, resolve_path
 
 
 class GrepParams(BaseModel):
+    """Represent grepparams state and behavior."""
     pattern: str = Field(..., description="Regular expression pattern to search for")
     path: str = Field(
         ".", description="File or directory to search in (default: current directory)"
@@ -19,12 +25,15 @@ class GrepParams(BaseModel):
 
 
 class GrepTool(Tool):
+    """Represent greptool state and behavior."""
     name = "grep"
     description = "Search for a regex pattern in file contents. Returns matching lines with file paths and line numbers."
     kind = ToolKind.READ
     schema = GrepParams
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Resolve search options, then scan files for matching lines.
+        """Perform the execute operation and return its result."""
         params = GrepParams(**invocation.params)
 
         search_path = resolve_path(invocation.cwd, params.path)
@@ -95,6 +104,8 @@ class GrepTool(Tool):
         )
 
     def _find_files(self, search_path: Path) -> list[Path]:
+        # Step 2: Restrict traversal to readable, non-binary files.
+        """Support the find files step used by the public workflow."""
         files = []
 
         for root, dirs, filenames in os.walk(search_path):

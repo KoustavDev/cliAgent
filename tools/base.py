@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from __future__ import annotations
 import abc
 from pathlib import Path
@@ -11,6 +16,7 @@ from config.config import Config
 
 
 class ToolKind(str, Enum):
+    """Represent toolkind state and behavior."""
     READ = "read"
     WRITE = "write"
     SHELL = "shell"
@@ -21,6 +27,7 @@ class ToolKind(str, Enum):
 
 @dataclass
 class FileDiff:
+    """Represent filediff state and behavior."""
     path: Path
     old_content: str
     new_content: str
@@ -29,6 +36,7 @@ class FileDiff:
     is_deletion: bool = False
 
     def to_diff(self) -> str:
+        """Convert the value into diff."""
         import difflib
 
         old_lines = self.old_content.splitlines(keepends=True)
@@ -54,6 +62,7 @@ class FileDiff:
 
 @dataclass
 class ToolResult:
+    """Represent toolresult state and behavior."""
     success: bool
     output: str
     error: str | None = None
@@ -65,6 +74,7 @@ class ToolResult:
 
     @classmethod
     def error_result(cls, error: str, output: str = "", **kwargs: Any):
+        """Perform the error result operation."""
         return cls(
             success=False,
             output=output,
@@ -74,6 +84,7 @@ class ToolResult:
 
     @classmethod
     def success_result(cls, output: str, **kwargs: Any):
+        """Perform the success result operation."""
         return cls(
             success=True,
             output=output,
@@ -82,6 +93,7 @@ class ToolResult:
         )
 
     def to_model_output(self) -> str:
+        """Convert the value into model output."""
         if self.success:
             return self.output or "(Tool completed successfully but returned no output.)"
 
@@ -90,12 +102,14 @@ class ToolResult:
 
 @dataclass
 class ToolInvocation:
+    """Represent toolinvocation state and behavior."""
     params: dict[str, Any]
     cwd: Path
 
 
 @dataclass
 class ToolConfirmation:
+    """Represent toolconfirmation state and behavior."""
     tool_name: str
     params: dict[str, Any]
     description: str
@@ -107,22 +121,28 @@ class ToolConfirmation:
 
 
 class Tool(abc.ABC):
+    """Represent tool state and behavior."""
     name: str = "base_tool"
     description: str = "Base tool"
     kind: ToolKind = ToolKind.READ
 
     def __init__(self, config: Config) -> None:
+        """Initialize the object with the configuration needed by later steps."""
         self.config = config
 
     @property
     def schema(self) -> dict[str, Any] | type["BaseModel"]:
+        """Perform the schema operation."""
         raise NotImplementedError("Tool must define schema property or class attribute")
 
     @abc.abstractmethod
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        """Perform the execute operation and return its result."""
         pass
 
     def validate_params(self, params: dict[str, Any]) -> list[str]:
+        # Step 1: Validate structured tool input before execution.
+        """Perform the validate params operation."""
         schema = self.schema
         if isinstance(schema, type) and issubclass(schema, BaseModel):
             try:
@@ -141,6 +161,7 @@ class Tool(abc.ABC):
         return []
 
     def is_mutating(self, params: dict[str, Any]) -> bool:
+        """Determine whether the requested value mutating."""
         return self.kind in {
             ToolKind.WRITE,
             ToolKind.SHELL,
@@ -151,6 +172,7 @@ class Tool(abc.ABC):
     async def get_confirmation(
         self, invocation: ToolInvocation
     ) -> ToolConfirmation | None:
+        """Return the confirmation needed by the caller."""
         if not self.is_mutating(invocation.params):
             return None
 
@@ -161,6 +183,8 @@ class Tool(abc.ABC):
         )
 
     def to_openai_schema(self) -> dict[str, Any]:
+        # Step 1: Normalize either a Pydantic model or a raw schema.
+        """Convert the value into openai schema."""
         schema = self.schema
 
         if isinstance(schema, type) and issubclass(schema, BaseModel):

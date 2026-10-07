@@ -1,3 +1,5 @@
+"""Conversation message storage, token accounting, compression, and tool-output pruning."""
+
 from datetime import datetime
 from typing import Any
 from client.response import TokenUsage
@@ -11,6 +13,8 @@ from utils.text import count_tokens
 
 @dataclass
 class MessageItem:
+    """Represent one conversation message and its token-management metadata."""
+
     role: str
     content: str
     tool_call_id: str | None = None
@@ -19,6 +23,7 @@ class MessageItem:
     pruned_at: datetime | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize this message into the provider's chat-message shape."""
         result: dict[str, Any] = {"role": self.role}
 
         if self.tool_call_id:
@@ -34,6 +39,8 @@ class MessageItem:
 
 
 class ContextManager:
+    """Maintain conversation history while enforcing context-window constraints."""
+
     PRUNE_PROTECT_TOKENS = 40_000
     PRUNE_MINIMUM_TOKENS = 20_000
 
@@ -43,6 +50,7 @@ class ContextManager:
         user_memory: str | None,
         tools: list[Tool] | None,
     ) -> None:
+        """Initialize the object and its runtime dependencies."""
         self._system_prompt = get_system_prompt(config, user_memory, tools)
         self.config = config
         self._model_name = self.config.model_name
@@ -52,9 +60,11 @@ class ContextManager:
 
     @property
     def message_count(self) -> int:
+        """Message count."""
         return len(self._messages)
 
     def add_user_message(self, content: str) -> None:
+        """Add user message."""
         item = MessageItem(
             role="user",
             content=content,
@@ -71,6 +81,7 @@ class ContextManager:
         content: str,
         tool_calls: list[dict[str, any]] | None = None,
     ) -> None:
+        """Add assistant message."""
         item = MessageItem(
             role="assistant",
             content=content or "",
@@ -84,6 +95,7 @@ class ContextManager:
         self._messages.append(item)
 
     def add_tool_result(self, tool_call_id: str, content: str) -> None:
+        """Add tool result."""
         item = MessageItem(
             role="tool",
             content=content,
@@ -94,6 +106,7 @@ class ContextManager:
         self._messages.append(item)
 
     def get_messages(self) -> list[dict[str, Any]]:
+        """Get messages."""
         messages = []
 
         if self._system_prompt:
@@ -110,18 +123,22 @@ class ContextManager:
         return messages
 
     def needs_compression(self) -> bool:
+        """Return whether the latest request is close enough to the limit to compact."""
         context_limit = self.config.model.context_window
         current_tokens = self._latest_usage.total_tokens
 
         return current_tokens > (context_limit * 0.8)
 
     def set_latest_usage(self, usage: TokenUsage):
+        """Set latest usage."""
         self._latest_usage = usage
 
     def add_usage(self, usage: TokenUsage):
+        """Add usage."""
         self.total_usage += usage
 
     def replace_with_summary(self, summary: str) -> None:
+        """Replace history with a resumable summary and explicit continuation prompts."""
         self._messages = []
 
         continuation_content = f"""# Context Restoration (Previous Session Compacted)
@@ -172,6 +189,7 @@ I'll continue with the REMAINING tasks only, starting from where we left off."""
         self._messages.append(continue_item)
 
     def prune_tool_outputs(self) -> int:
+        """Clear old tool output while preserving the newest protected token budget."""
         user_message_count = sum(1 for msg in self._messages if msg.role == "user")
 
         if user_message_count < 2:
@@ -181,6 +199,7 @@ I'll continue with the REMAINING tasks only, starting from where we left off."""
         pruned_tokens = 0
         to_prune: list[MessageItem] = []
 
+        # Walk backward so recent tool results remain available to the next turn.
         for msg in reversed(self._messages):
             if msg.role == "tool" and msg.tool_call_id:
                 if msg.pruned_at:
@@ -207,4 +226,5 @@ I'll continue with the REMAINING tasks only, starting from where we left off."""
         return pruned_count
 
     def clear(self) -> None:
+        """Clear."""
         self._messages = []

@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from dataclasses import dataclass, field
 from enum import Enum
 import os
@@ -10,6 +15,7 @@ from utils.environment import normalize_process_environment
 
 
 class MCPServerStatus(str, Enum):
+    """Represent mcpserverstatus state and behavior."""
     DISCONNECTED = "disconnected"
     CONNECTING = "connecting"
     CONNECTED = "connected"
@@ -19,6 +25,7 @@ class MCPServerStatus(str, Enum):
 @dataclass
 class MCPToolInfo:
 
+    """Represent mcptoolinfo state and behavior."""
     name: str
     description: str
     input_schema: dict[str, Any] = field(default_factory=dict)
@@ -26,12 +33,14 @@ class MCPToolInfo:
 
 
 class MCPClient:
+    """Represent mcpclient state and behavior."""
     def __init__(
         self,
         name: str,
         config: MCPServerConfig,
         cwd: Path,
     ) -> None:
+        """Initialize the object with the configuration needed by later steps."""
         self.name = name
         self.config = config
         self.cwd = cwd
@@ -42,9 +51,12 @@ class MCPClient:
 
     @property
     def tools(self) -> list[MCPToolInfo]:
+        """Perform the tools operation."""
         return list(self._tools.values())
 
     def _create_transport(self) -> StdioTransport | SSETransport:
+        # Step 1: Build the configured stdio or SSE transport.
+        """Support the create transport step used by the public workflow."""
         if self.config.command:
             env = normalize_process_environment(os.environ)
             env.update(normalize_process_environment(self.config.env))
@@ -60,6 +72,8 @@ class MCPClient:
             return SSETransport(url=self.config.url)
 
     async def connect(self) -> None:
+        # Step 1: Open the server connection and cache its advertised tools.
+        """Perform the connect operation and return its result."""
         if self.status == MCPServerStatus.CONNECTED:
             return
 
@@ -68,6 +82,7 @@ class MCPClient:
         try:
             self._client = Client(transport=self._create_transport())
 
+            # The context manager performs the MCP handshake before discovery.
             await self._client.__aenter__()
 
             tool_result = await self._client.list_tools()
@@ -87,7 +102,10 @@ class MCPClient:
             raise
 
     async def disconnect(self) -> None:
+        # Step 1: Close the transport and clear server metadata.
+        """Perform the disconnect operation and return its result."""
         if self._client:
+            # Closing the context releases stdio children and network sockets.
             await self._client.__aexit__(None, None, None)
             self._client = None
 
@@ -95,9 +113,12 @@ class MCPClient:
         self.status = MCPServerStatus.DISCONNECTED
 
     async def call_tool(self, tool_name: str, arguments: dict[str, Any]):
+        # Step 1: Invoke the remote tool, then flatten content into text output.
+        """Perform the call tool operation and return its result."""
         if not self._client or self.status != MCPServerStatus.CONNECTED:
             raise RuntimeError(f"Not connected to server {self.name}")
 
+        # Keep remote invocation inside this client's lifecycle boundary.
         result = await self._client.call_tool(tool_name, arguments)
 
         output = []

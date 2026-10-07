@@ -1,3 +1,5 @@
+"""Rich terminal rendering for assistant responses, tool calls, confirmations, and help."""
+
 from pathlib import Path
 from typing import Any
 from rich.console import Console
@@ -49,6 +51,7 @@ _console: Console | None = None
 
 
 def get_console() -> Console:
+    """Get console."""
     global _console
     if _console is None:
         _console = Console(theme=AGENT_THEME, highlight=False)
@@ -57,11 +60,13 @@ def get_console() -> Console:
 
 
 class TUI:
+    """Coordinate the tui behavior."""
     def __init__(
         self,
         config: Config,
         console: Console | None = None,
     ) -> None:
+        """Initialize the object and its runtime dependencies."""
         self.console = console or get_console()
         self._assistant_stream_open = False
         self._tool_args_by_call_id: dict[str, dict[str, Any]] = {}
@@ -70,19 +75,23 @@ class TUI:
         self._max_block_tokens = 2500
 
     def begin_assistant(self) -> None:
+        """Begin assistant."""
         self.console.print()
         self.console.print(Rule(Text("Assistant", style="assistant")))
         self._assistant_stream_open = True
 
     def end_assistant(self) -> None:
+        """End assistant."""
         if self._assistant_stream_open:
             self.console.print()
         self._assistant_stream_open = False
 
     def stream_assistant_delta(self, content: str) -> None:
+        """Stream assistant delta."""
         self.console.print(content, end="", markup=False)
 
     def _ordered_args(self, tool_name: str, args: dict[str, Any]) -> list[tuple]:
+        """Ordered args."""
         _PREFERRED_ORDER = {
             "read_file": ["path", "offset", "limit"],
             "write_file": ["path", "create_directories", "content"],
@@ -110,6 +119,7 @@ class TUI:
         return ordered
 
     def _render_args_table(self, tool_name: str, args: dict[str, Any]) -> Table:
+        """Render args table."""
         table = Table.grid(padding=(0, 1))
         table.add_column(style="muted", justify="right", no_wrap=True)
         table.add_column(style="code", overflow="fold")
@@ -135,6 +145,7 @@ class TUI:
         tool_kind: str | None,
         arguments: dict[str, Any],
     ) -> None:
+        """Tool call start."""
         self._tool_args_by_call_id[call_id] = arguments
         border_style = f"tool.{tool_kind}" if tool_kind else "tool"
 
@@ -172,6 +183,7 @@ class TUI:
         self.console.print(panel)
 
     def _extract_read_file_code(self, text: str) -> tuple[int, str] | None:
+        """Extract read file code."""
         body = text
         header_match = re.match(r"^Showing lines (\d+)-(\d+) of (\d+)\n\n", text)
 
@@ -198,6 +210,7 @@ class TUI:
         return start_line, "\n".join(code_lines)
 
     def _guess_language(self, path: str | None) -> str:
+        """Guess language."""
         if not path:
             return "text"
         suffix = Path(path).suffix.lower()
@@ -231,6 +244,7 @@ class TUI:
         }.get(suffix, "text")
 
     def print_welcome(self, title: str, lines: list[str]) -> None:
+        """Print welcome."""
         body = "\n".join(lines)
         self.console.print(
             Panel(
@@ -256,6 +270,7 @@ class TUI:
         truncated: bool,
         exit_code: int | None,
     ) -> None:
+        """Tool call complete."""
         border_style = f"tool.{tool_kind}" if tool_kind else "tool"
         status_icon = "✓" if success else "✗"
         status_style = "success" if success else "error"
@@ -554,6 +569,7 @@ class TUI:
         self.console.print(panel)
 
     def handle_confirmation(self, confirmation: ToolConfirmation) -> bool:
+        """Handle confirmation."""
         output = [
             Text(confirmation.tool_name, style="tool"),
             Text(confirmation.description, style="code"),
@@ -592,6 +608,7 @@ class TUI:
         return response.lower() in {"y", "yes"}
 
     def handle_budget_confirmation(self, message: str) -> bool:
+        """Handle budget confirmation."""
         response = Prompt.ask(
             f"\n[warning]{message}[/warning]",
             choices=["y", "n", "yes", "no"],
@@ -600,6 +617,7 @@ class TUI:
         return response.lower() in {"y", "yes"}
 
     def show_help(self) -> None:
+        """Show help."""
         help_text = """
 ## Commands
 

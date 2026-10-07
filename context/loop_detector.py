@@ -1,3 +1,5 @@
+"""Loop detection for repeated actions, failed tools, and unchanged tool results."""
+
 from collections import Counter, deque
 import hashlib
 from pathlib import Path
@@ -6,7 +8,9 @@ from typing import Any
 
 
 class LoopDetector:
+    """Coordinate the loopdetector behavior."""
     def __init__(self):
+        """Initialize the object and its runtime dependencies."""
         self.max_exact_repeats = 3
         self.max_cycle_length = 3
         self.max_tool_target_repeats = 4
@@ -129,6 +133,7 @@ class LoopDetector:
 
     def check_for_loop(self) -> str | None:
         # 1. Repeated identical result stagnation check
+        """Check for loop."""
         for tool_name, (_, count) in self._stagnant_results.items():
             if count >= self.max_consecutive_identical_results:
                 return (
@@ -177,6 +182,7 @@ class LoopDetector:
         return None
 
     def clear(self) -> None:
+        """Clear."""
         self._history.clear()
         self._target_history.clear()
         self._consecutive_failures.clear()

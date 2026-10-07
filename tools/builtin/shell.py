@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 import asyncio
 import os
 from pathlib import Path
@@ -31,6 +36,7 @@ BLOCKED_COMMANDS = {
 
 
 class ShellParams(BaseModel):
+    """Represent shellparams state and behavior."""
     command: str = Field(..., description="The shell command to execute")
     timeout: int = Field(
         120, ge=1, le=600, description="Timeout in seconds (default: 120)"
@@ -39,6 +45,7 @@ class ShellParams(BaseModel):
 
 
 class ShellTool(Tool):
+    """Represent shelltool state and behavior."""
     name = "shell"
     kind = ToolKind.SHELL
     description = "Execute a shell command. Use this for running system commands, scripts and CLI tools."
@@ -48,6 +55,8 @@ class ShellTool(Tool):
     async def get_confirmation(
         self, invocation: ToolInvocation
     ) -> ToolConfirmation | None:
+        # Step 1: Classify blocked commands before presenting approval details.
+        """Return the confirmation needed by the caller."""
         params = ShellParams(**invocation.params)
 
         for blocked in BLOCKED_COMMANDS:
@@ -69,6 +78,8 @@ class ShellTool(Tool):
         )
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        # Step 1: Reject unsafe commands and resolve the working directory.
+        """Perform the execute operation and return its result."""
         params = ShellParams(**invocation.params)
 
         command = params.command.lower().strip()
@@ -93,6 +104,7 @@ class ShellTool(Tool):
             )
 
         env = self._build_environment()
+        # Step 2: Select the platform shell and capture its output with a timeout.
         if sys.platform == "win32":
             shell_cmd = self._build_windows_command(params.command)
         else:
@@ -214,6 +226,7 @@ class ShellTool(Tool):
         ]
 
     def _build_environment(self) -> dict[str, str]:
+        """Support the build environment step used by the public workflow."""
         env = normalize_process_environment(os.environ)
 
         shell_environment = self.config.shell_environment

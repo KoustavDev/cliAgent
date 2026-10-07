@@ -1,3 +1,8 @@
+"""Tools, safety checks, or lifecycle hooks provided by this module.
+
+The public objects below validate inputs, perform their operation, and return
+structured results without changing the surrounding application workflow.
+"""
 from pathlib import Path
 from typing import Any
 from config.config import Config
@@ -12,16 +17,20 @@ logger = logging.getLogger(__name__)
 
 
 class ToolRegistry:
+    """Represent toolregistry state and behavior."""
     def __init__(self, config: Config):
+        """Initialize the object with the configuration needed by later steps."""
         self._tools: dict[str, Tool] = {}
         self._mcp_tools: dict[str, Tool] = {}
         self.config = config
 
     @property
     def connected_mcp_servers(self) -> list[Tool]:
+        """Perform the connected mcp servers operation."""
         return self._mcp_tools.values()
 
     def register(self, tool: Tool) -> None:
+        """Perform the register operation and return its result."""
         if tool.name in self._tools:
             logger.warning(f"Overwriting existing tool: {tool.name}")
 
@@ -29,10 +38,12 @@ class ToolRegistry:
         logger.debug(f"Registered tool: {tool.name}")
 
     def register_mcp_tool(self, tool: Tool) -> None:
+        """Perform the register mcp tool operation."""
         self._mcp_tools[tool.name] = tool
         logger.debug(f"Registered MCP tool: {tool.name}")
 
     def unregister(self, name: str) -> bool:
+        """Perform the unregister operation and return its result."""
         if name in self._tools:
             del self._tools[name]
             return True
@@ -40,6 +51,7 @@ class ToolRegistry:
         return False
 
     def get(self, name: str) -> Tool | None:
+        """Perform the get operation."""
         if name in self._tools:
             return self._tools[name]
         elif name in self._mcp_tools:
@@ -48,6 +60,7 @@ class ToolRegistry:
         return None
 
     def get_tools(self) -> list[Tool]:
+        """Return the tools needed by the caller."""
         tools: list[Tool] = []
 
         for tool in self._tools.values():
@@ -63,6 +76,7 @@ class ToolRegistry:
         return tools
 
     def get_schemas(self) -> list[dict[str, Any]]:
+        """Return the schemas needed by the caller."""
         return [tool.to_openai_schema() for tool in self.get_tools()]
 
     async def invoke(
@@ -73,6 +87,8 @@ class ToolRegistry:
         hook_system: HookSystem,
         approval_manager: ApprovalManager | None = None,
     ) -> ToolResult:
+        # Step 1: Resolve the tool, validate input, and run pre-invocation hooks.
+        """Perform the invoke operation and return its result."""
         tool = self.get(name)
         if tool is None:
             result = ToolResult.error_result(
@@ -129,6 +145,7 @@ class ToolRegistry:
                         return result
 
         try:
+            # Step 2: Execute under approval policy, then trigger the completion hook.
             result = await tool.execute(invocation)
         except Exception as e:
             logger.exception(f"Tool {name} raised unexpected error")
@@ -145,6 +162,7 @@ class ToolRegistry:
 
 
 def create_default_registry(config: Config) -> ToolRegistry:
+    """Perform the create default registry operation."""
     registry = ToolRegistry(config)
 
     for tool_class in get_all_builtin_tools():

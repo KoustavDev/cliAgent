@@ -1,3 +1,5 @@
+"""Event types and payload factories used to stream agent progress to the user interface."""
+
 from __future__ import annotations
 from enum import Enum
 from dataclasses import dataclass, field
@@ -8,6 +10,8 @@ from tools.base import ToolResult
 
 
 class AgentEventType(str, Enum):
+    """Names for lifecycle, streaming, and tool execution events."""
+
     # Agent lifecycle
     AGENT_START = "agent_start"
     AGENT_END = "agent_end"
@@ -24,11 +28,14 @@ class AgentEventType(str, Enum):
 
 @dataclass
 class AgentEvent:
+    """Carry an event name and its JSON-serializable payload."""
+
     type: AgentEventType
     data: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def agent_start(cls, message: str) -> AgentEvent:
+        """Create the event emitted before processing a user message."""
         return cls(
             type=AgentEventType.AGENT_START,
             data={"message": message},
@@ -40,6 +47,7 @@ class AgentEvent:
         response: str | None = None,
         usage: TokenUsage | None = None,
     ) -> AgentEvent:
+        """Create the event emitted after the agent finishes successfully."""
         return cls(
             type=AgentEventType.AGENT_END,
             data={
@@ -54,6 +62,7 @@ class AgentEvent:
         error: str,
         details: dict[str, Any] | None = None,
     ) -> AgentEvent:
+        """Create an event describing an error encountered during a turn."""
         return cls(
             type=AgentEventType.AGENT_ERROR,
             data={"error": error, "details": details or {}},
@@ -61,6 +70,7 @@ class AgentEvent:
 
     @classmethod
     def text_delta(cls, content: str) -> AgentEvent:
+        """Text delta."""
         return cls(
             type=AgentEventType.TEXT_DELTA,
             data={"content": content},
@@ -68,6 +78,7 @@ class AgentEvent:
 
     @classmethod
     def text_complete(cls, content: str) -> AgentEvent:
+        """Text complete."""
         return cls(
             type=AgentEventType.TEXT_COMPLETE,
             data={"content": content},
@@ -75,6 +86,7 @@ class AgentEvent:
 
     @classmethod
     def tool_call_start(cls, call_id: str, name: str, arguments: dict[str, Any]):
+        """Tool call start."""
         return cls(
             type=AgentEventType.TOOL_CALL_START,
             data={
@@ -91,6 +103,7 @@ class AgentEvent:
         name: str,
         result: ToolResult,
     ):
+        """Tool call complete."""
         return cls(
             type=AgentEventType.TOOL_CALL_COMPLETE,
             data={
