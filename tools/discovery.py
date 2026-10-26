@@ -56,7 +56,7 @@ class ToolDiscoveryManager:
     def discover_from_directory(self, directory: Path) -> None:
         # Step 1: Inspect the directory's user-tool folder and register discoveries.
         """Perform the discover from directory operation."""
-        tool_dir = directory / ".ai-agent" / "tools"
+        tool_dir = directory / ".cli-agent" / "tools"
 
         if not tool_dir.exists() or not tool_dir.is_dir():
             return

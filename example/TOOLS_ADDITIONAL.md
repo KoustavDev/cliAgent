@@ -91,14 +91,14 @@ class SubagentDefinition:
 
 It contains:
 
-| Field | Purpose |
-|---|---|
-| `name` | Internal name of the specialized subagent |
-| `description` | What the subagent is designed to do |
-| `goal_prompt` | Its specialist instructions |
-| `allowed_tools` | Optional list of tools it may use |
-| `max_turns` | Maximum agent-loop iterations |
-| `timeout_seconds` | Maximum wall-clock execution time |
+| Field             | Purpose                                   |
+| ----------------- | ----------------------------------------- |
+| `name`            | Internal name of the specialized subagent |
+| `description`     | What the subagent is designed to do       |
+| `goal_prompt`     | Its specialist instructions               |
+| `allowed_tools`   | Optional list of tools it may use         |
+| `max_turns`       | Maximum agent-loop iterations             |
+| `timeout_seconds` | Maximum wall-clock execution time         |
 
 The definition is reusable. It describes the subagent type, while `SubagentParams.goal` describes the task for one invocation.
 
@@ -563,7 +563,7 @@ Tool discovery allows the application to find Python files containing custom too
 Instead of changing the main registry for each project-specific tool, a project can place a file in:
 
 ```text
-<working directory>/.ai-agent/tools/
+<working directory>/.cli-agent/tools/
 ```
 
 The discovery manager finds the file, imports it, identifies `Tool` subclasses, creates instances, and registers them.
@@ -571,7 +571,7 @@ The discovery manager finds the file, imports it, identifies `Tool` subclasses, 
 The flow is:
 
 ```text
-.ai-agent/tools/*.py
+.cli-agent/tools/*.py
           |
           v
 Load Python module dynamically
@@ -650,13 +650,13 @@ def discover_all(self) -> None:
 The first location is project-specific:
 
 ```text
-<config.cwd>/.ai-agent/tools/
+<config.cwd>/.cli-agent/tools/
 ```
 
 The second location is the user-level configuration directory:
 
 ```text
-<user config directory>/ai-agent/tools/
+<user config directory>/cli-agent/tools/
 ```
 
 This supports both:
@@ -675,7 +675,7 @@ def discover_from_directory(self, directory: Path) -> None:
 builds:
 
 ```python
-tool_dir = directory / ".ai-agent" / "tools"
+tool_dir = directory / ".cli-agent" / "tools"
 ```
 
 If the directory does not exist or is not a directory, discovery stops quietly:
@@ -826,7 +826,7 @@ The registry then makes the tool available to:
 A file such as:
 
 ```text
-project/.ai-agent/tools/test_tool.py
+project/.cli-agent/tools/test_tool.py
 ```
 
 may contain:
@@ -918,7 +918,7 @@ Importing a Python module executes its top-level code.
 Therefore, only trusted files should be placed in:
 
 ```text
-.ai-agent/tools/
+.cli-agent/tools/
 ```
 
 A custom tool can access the same environment and application capabilities as other Python code. Discovery is an extensibility feature, not a sandbox.
@@ -927,10 +927,10 @@ A custom tool can access the same environment and application capabilities as ot
 
 These features solve different problems:
 
-| Feature | Purpose |
-|---|---|
+| Feature   | Purpose                                     |
+| --------- | ------------------------------------------- |
 | Subagents | Delegate a focused task to another AI agent |
-| Discovery | Load custom Python tool implementations |
+| Discovery | Load custom Python tool implementations     |
 
 They can work together. A discovered tool could perform a project-specific operation, and a subagent could be configured with access to selected tools.
 
@@ -1017,7 +1017,7 @@ Define specialist
 [`tools/discovery.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/tools/discovery.py>) loads custom tool classes dynamically:
 
 ```text
-Search .ai-agent/tools
+Search .cli-agent/tools
   -> Import Python modules
   -> Find Tool subclasses
   -> Instantiate them with Config

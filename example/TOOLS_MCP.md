@@ -41,11 +41,11 @@ Model can call MCP tools
 
 The package contains three modules:
 
-| File | Responsibility |
-|---|---|
-| [`client.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/tools/mcp/client.py>) | Connects to one MCP server and calls its tools |
+| File                                                                                              | Responsibility                                         |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [`client.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/tools/mcp/client.py>)           | Connects to one MCP server and calls its tools         |
 | [`mcp_manager.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/tools/mcp/mcp_manager.py>) | Manages multiple MCP clients and registers their tools |
-| [`mcp_tool.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/tools/mcp/mcp_tool.py>) | Adapts a remote MCP tool to the local `Tool` interface |
+| [`mcp_tool.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/tools/mcp/mcp_tool.py>)       | Adapts a remote MCP tool to the local `Tool` interface |
 
 ## 1. What is an MCP server?
 
@@ -103,7 +103,7 @@ The configuration validator rejects:
 
 ## 3. Example stdio configuration
 
-A local MCP server can be configured in `.ai-agent/config.toml`:
+A local MCP server can be configured in `.cli-agent/config.toml`:
 
 ```toml
 [mcp_servers.filesystem]
@@ -200,12 +200,12 @@ class MCPToolInfo:
 
 It contains:
 
-| Field | Meaning |
-|---|---|
-| `name` | Tool name as advertised by the MCP server |
-| `description` | Tool description from the server |
-| `input_schema` | JSON schema for tool arguments |
-| `server_name` | Name of the connected MCP server |
+| Field          | Meaning                                   |
+| -------------- | ----------------------------------------- |
+| `name`         | Tool name as advertised by the MCP server |
+| `description`  | Tool description from the server          |
+| `input_schema` | JSON schema for tool arguments            |
+| `server_name`  | Name of the connected MCP server          |
 
 The information is obtained from the server during connection.
 
@@ -711,7 +711,7 @@ For example, an MCP server may advertise:
 ```json
 {
   "properties": {
-    "path": {"type": "string"}
+    "path": { "type": "string" }
   },
   "required": ["path"]
 }
@@ -927,14 +927,14 @@ The external server returns content, and the wrapper returns it as a local `Tool
 
 ## 28. MCP tools versus built-in tools
 
-| Built-in tool | MCP tool |
-|---|---|
-| Implemented in this repository | Implemented by an external server |
-| Direct Python execution | Protocol request to a remote/local server |
-| Schema defined locally | Schema discovered from the server |
-| Registered by default registry | Registered after MCP connection |
-| Usually has a known safety behavior | Conservatively treated as mutating |
-| Fails inside local implementation | Can fail due to connection or remote server |
+| Built-in tool                       | MCP tool                                    |
+| ----------------------------------- | ------------------------------------------- |
+| Implemented in this repository      | Implemented by an external server           |
+| Direct Python execution             | Protocol request to a remote/local server   |
+| Schema defined locally              | Schema discovered from the server           |
+| Registered by default registry      | Registered after MCP connection             |
+| Usually has a known safety behavior | Conservatively treated as mutating          |
+| Fails inside local implementation   | Can fail due to connection or remote server |
 
 The adapter hides most of this difference from the rest of the application.
 
@@ -965,7 +965,7 @@ During execution, `MCPTool.execute()` converts failures into a `ToolResult` erro
 
 1. The `tools/mcp` directory contains three Python modules and no `__init__.py` file in the current workspace. Python namespace-package behavior allows the imports to work.
 
-2. The current `.ai-agent/config.toml` contains two filesystem servers. The second uses a package name ending in `222222222222`, which is likely invalid and may remain disconnected.
+2. The current `.cli-agent/config.toml` contains two filesystem servers. The second uses a package name ending in `222222222222`, which is likely invalid and may remain disconnected.
 
 3. `MCPClient._create_transport()` assumes that a configuration without `command` has a valid `url`. `MCPServerConfig` validation is intended to guarantee this.
 

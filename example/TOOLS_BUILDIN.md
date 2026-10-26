@@ -6,19 +6,19 @@ They are defined in the [`tools/builtin/`](<d:/Gen AI/CLI agent.worktrees/ai-cod
 
 The current built-in tools are:
 
-| Tool name | Purpose | Kind |
-|---|---|---|
-| `read_file` | Read text files | `READ` |
-| `write_file` | Create or overwrite files | `WRITE` |
-| `edit` | Make precise text replacements | `WRITE` |
-| `shell` | Run system commands | `SHELL` |
-| `list_dir` | List directory contents | `READ` |
-| `grep` | Search file contents with a regular expression | `READ` |
-| `glob` | Find files by a glob pattern | `READ` |
-| `web_search` | Search the web | `NETWORK` |
-| `web_fetch` | Fetch a URL | `NETWORK` |
-| `todos` | Manage the current session's task list | `MEMORY` |
-| `memory` | Store persistent user memory | `MEMORY` |
+| Tool name    | Purpose                                        | Kind      |
+| ------------ | ---------------------------------------------- | --------- |
+| `read_file`  | Read text files                                | `READ`    |
+| `write_file` | Create or overwrite files                      | `WRITE`   |
+| `edit`       | Make precise text replacements                 | `WRITE`   |
+| `shell`      | Run system commands                            | `SHELL`   |
+| `list_dir`   | List directory contents                        | `READ`    |
+| `grep`       | Search file contents with a regular expression | `READ`    |
+| `glob`       | Find files by a glob pattern                   | `READ`    |
+| `web_search` | Search the web                                 | `NETWORK` |
+| `web_fetch`  | Fetch a URL                                    | `NETWORK` |
+| `todos`      | Manage the current session's task list         | `MEMORY`  |
+| `memory`     | Store persistent user memory                   | `MEMORY`  |
 
 The basic flow is:
 
@@ -126,11 +126,11 @@ class ReadFileParams(BaseModel):
     limit: int | None = None
 ```
 
-| Parameter | Meaning |
-|---|---|
-| `path` | File path, relative to the working directory or absolute |
-| `offset` | First line to read, starting at 1 |
-| `limit` | Maximum number of lines to read |
+| Parameter | Meaning                                                  |
+| --------- | -------------------------------------------------------- |
+| `path`    | File path, relative to the working directory or absolute |
+| `offset`  | First line to read, starting at 1                        |
+| `limit`   | Maximum number of lines to read                          |
 
 ### Example request
 
@@ -198,9 +198,9 @@ class ListDirParams(BaseModel):
     include_hidden: bool = False
 ```
 
-| Parameter | Meaning |
-|---|---|
-| `path` | Directory to list |
+| Parameter        | Meaning                          |
+| ---------------- | -------------------------------- |
+| `path`           | Directory to list                |
 | `include_hidden` | Include names beginning with `.` |
 
 ### Example request
@@ -248,10 +248,10 @@ class GlobParams(BaseModel):
     path: str = "."
 ```
 
-| Parameter | Meaning |
-|---|---|
-| `pattern` | Glob pattern to match |
-| `path` | Directory in which to search |
+| Parameter | Meaning                      |
+| --------- | ---------------------------- |
+| `pattern` | Glob pattern to match        |
+| `path`    | Directory in which to search |
 
 ### Example request
 
@@ -296,10 +296,10 @@ class GrepParams(BaseModel):
     case_insensitive: bool = False
 ```
 
-| Parameter | Meaning |
-|---|---|
-| `pattern` | Regular expression to search for |
-| `path` | File or directory to search |
+| Parameter          | Meaning                          |
+| ------------------ | -------------------------------- |
+| `pattern`          | Regular expression to search for |
+| `path`             | File or directory to search      |
 | `case_insensitive` | Ignore letter case when matching |
 
 ### Example request
@@ -361,10 +361,10 @@ class WriteFileParams(BaseModel):
     create_directories: bool = True
 ```
 
-| Parameter | Meaning |
-|---|---|
-| `path` | File to create or overwrite |
-| `content` | Complete content to write |
+| Parameter            | Meaning                           |
+| -------------------- | --------------------------------- |
+| `path`               | File to create or overwrite       |
+| `content`            | Complete content to write         |
 | `create_directories` | Create missing parent directories |
 
 ### Example request
@@ -427,11 +427,11 @@ class EditParams(BaseModel):
     replace_all: bool = False
 ```
 
-| Parameter | Meaning |
-|---|---|
-| `path` | File to edit |
-| `old_string` | Exact text to find |
-| `new_string` | Replacement text; can be empty to delete |
+| Parameter     | Meaning                                                 |
+| ------------- | ------------------------------------------------------- |
+| `path`        | File to edit                                            |
+| `old_string`  | Exact text to find                                      |
+| `new_string`  | Replacement text; can be empty to delete                |
 | `replace_all` | Replace every occurrence instead of requiring one match |
 
 The old text must match exactly, including whitespace and indentation.
@@ -513,11 +513,11 @@ class ShellParams(BaseModel):
     cwd: str | None = None
 ```
 
-| Parameter | Meaning |
-|---|---|
-| `command` | Command to execute |
-| `timeout` | Maximum execution time in seconds |
-| `cwd` | Optional command working directory |
+| Parameter | Meaning                            |
+| --------- | ---------------------------------- |
+| `command` | Command to execute                 |
+| `timeout` | Maximum execution time in seconds  |
+| `cwd`     | Optional command working directory |
 
 ### Example request
 
@@ -632,9 +632,9 @@ class WebFetchParams(BaseModel):
     timeout: int = 30
 ```
 
-| Parameter | Meaning |
-|---|---|
-| `url` | Must use `http://` or `https://` |
+| Parameter | Meaning                               |
+| --------- | ------------------------------------- |
+| `url`     | Must use `http://` or `https://`      |
 | `timeout` | Request timeout from 5 to 120 seconds |
 
 ### Example request
@@ -776,7 +776,7 @@ Unlike `todos`, memory survives the current session and can be loaded in later s
 The file is:
 
 ```text
-<application data directory>/ai-agent/user_memory.json
+<application data directory>/cli-agent/user_memory.json
 ```
 
 ### Parameters

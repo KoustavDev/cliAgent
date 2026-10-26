@@ -100,14 +100,14 @@ class HookConfig(BaseModel):
 
 Each hook has:
 
-| Field | Purpose |
-|---|---|
-| `name` | Human-readable identifier |
-| `trigger` | Event at which the hook should run |
-| `command` | Shell command to execute |
-| `script` | Inline shell script to execute |
-| `timeout_sec` | Maximum execution time |
-| `enabled` | Enables or disables this individual hook |
+| Field         | Purpose                                  |
+| ------------- | ---------------------------------------- |
+| `name`        | Human-readable identifier                |
+| `trigger`     | Event at which the hook should run       |
+| `command`     | Shell command to execute                 |
+| `script`      | Inline shell script to execute           |
+| `timeout_sec` | Maximum execution time                   |
+| `enabled`     | Enables or disables this individual hook |
 
 A hook must define either `command` or `script`:
 
@@ -134,17 +134,17 @@ class HookTrigger(str, Enum):
 
 They represent:
 
-| Trigger | When it runs |
-|---|---|
-| `before_agent` | Before processing a user request |
-| `after_agent` | After the agent produces its final response |
-| `before_tool` | Immediately before a tool executes |
-| `after_tool` | After a tool completes or is rejected |
-| `on_error` | When explicitly triggered with an exception |
+| Trigger        | When it runs                                |
+| -------------- | ------------------------------------------- |
+| `before_agent` | Before processing a user request            |
+| `after_agent`  | After the agent produces its final response |
+| `before_tool`  | Immediately before a tool executes          |
+| `after_tool`   | After a tool completes or is rejected       |
+| `on_error`     | When explicitly triggered with an exception |
 
 ## 5. Example configuration
 
-The project currently enables hooks in [`.ai-agent/config.toml`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/.ai-agent/config.toml>):
+The project currently enables hooks in [`.cli-agent/config.toml`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/.cli-agent/config.toml>):
 
 ```toml
 hooks_enabled = true
@@ -501,9 +501,9 @@ scripts/test_tool.py reads environment
 Script writes an audit record
 ```
 
-The script is configured as a command in [`.ai-agent/config.toml`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/.ai-agent/config.toml>).
+The script is configured as a command in [`.cli-agent/config.toml`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/.cli-agent/config.toml>).
 
-This is different from [`.ai-agent/tools/test_tool.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/.ai-agent/tools/test_tool.py>), which is a dynamically discovered AI-agent tool.
+This is different from [`.cli-agent/tools/test_tool.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/.cli-agent/tools/test_tool.py>), which is a dynamically discovered cli-agent tool.
 
 ## 16. Hooks do not directly modify agent behavior
 
@@ -619,7 +619,7 @@ Final response is complete
 3. The example hook script writes to a hard-coded macOS path:
 
    ```python
-   /Users/rivaanranawat/Desktop/ai-agent/hook.log
+   /Users/rivaanranawat/Desktop/cli-agent/hook.log
    ```
 
    This path may not exist or be appropriate on another machine.

@@ -32,7 +32,7 @@ def main():
     }
 
     # Resolve the workspace log location and create its directory on demand.
-    log_path = os.path.expanduser(f"{cwd}/.ai-agent/hook.log")
+    log_path = os.path.expanduser(f"{cwd}/.cli-agent/hook.log")
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     # Append one newline-delimited record for easy inspection and parsing.
     with open(log_path, "a") as f:

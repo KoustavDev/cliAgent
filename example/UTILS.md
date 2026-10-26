@@ -6,11 +6,11 @@ common concerns out of tools and higher-level services.
 
 The package currently contains:
 
-| File | Purpose |
-|---|---|
-| [`paths.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/utils/paths.py>) | Resolve paths, create parent directories, detect binary files, and format paths for display |
-| [`text.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/utils/text.py>) | Count tokens and safely shorten large text |
-| [`errors.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/utils/errors.py>) | Define structured application and configuration exceptions |
+| File                                                                                | Purpose                                                                                     |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| [`paths.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/utils/paths.py>)   | Resolve paths, create parent directories, detect binary files, and format paths for display |
+| [`text.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/utils/text.py>)     | Count tokens and safely shorten large text                                                  |
+| [`errors.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/utils/errors.py>) | Define structured application and configuration exceptions                                  |
 
 The utilities do not run the agent or decide which tool to call. They provide common
 building blocks:
@@ -112,7 +112,7 @@ C:\projects\demo
 and a tool receives:
 
 ```json
-{"path": "src/config.py"}
+{ "path": "src/config.py" }
 ```
 
 the tool operates on:
@@ -596,7 +596,7 @@ Example:
 raise ConfigError(
     "Invalid model configuration",
     config_key="model.temperature",
-    config_file="C:/projects/demo/.ai-agent/config.toml",
+    config_file="C:/projects/demo/.cli-agent/config.toml",
 )
 ```
 
@@ -605,7 +605,7 @@ Its string representation includes the location:
 ```text
 Invalid model configuration (
     config_key=model.temperature,
-    config_file=C:/projects/demo/.ai-agent/config.toml
+    config_file=C:/projects/demo/.cli-agent/config.toml
 )
 ```
 
@@ -648,7 +648,7 @@ with `ConfigError`:
 raise ConfigError(
     "Invalid TOML",
     config_key="mcp_servers.filesystem",
-    config_file="C:/projects/demo/.ai-agent/config.toml",
+    config_file="C:/projects/demo/.cli-agent/config.toml",
 )
 ```
 
@@ -660,7 +660,7 @@ The second form preserves machine-readable context:
     "message": "Invalid TOML",
     "details": {
         "config_key": "mcp_servers.filesystem",
-        "config_file": "C:/projects/demo/.ai-agent/config.toml",
+        "config_file": "C:/projects/demo/.cli-agent/config.toml",
     },
     "cause": None,
 }
@@ -726,16 +726,16 @@ write file
 
 These helpers intentionally have narrow responsibilities:
 
-| Utility | Does | Does not |
-|---|---|---|
-| `resolve_path` | Builds an absolute path | Enforce project containment |
-| `display_path_rel_to_cwd` | Shortens paths for display | Change the actual path |
-| `ensure_parent_directory` | Creates parent folders | Write file contents |
-| `is_binary_file` | Performs a NUL-byte heuristic | Identify every binary format |
-| `count_tokens` | Counts tokens using `tiktoken` | Manage the context window |
-| `truncate_text` | Shortens text to a token budget | Persist the complete output |
-| `AgentError` | Stores structured failure information | Automatically log or display errors |
-| `ConfigError` | Adds configuration location details | Validate configuration itself |
+| Utility                   | Does                                  | Does not                            |
+| ------------------------- | ------------------------------------- | ----------------------------------- |
+| `resolve_path`            | Builds an absolute path               | Enforce project containment         |
+| `display_path_rel_to_cwd` | Shortens paths for display            | Change the actual path              |
+| `ensure_parent_directory` | Creates parent folders                | Write file contents                 |
+| `is_binary_file`          | Performs a NUL-byte heuristic         | Identify every binary format        |
+| `count_tokens`            | Counts tokens using `tiktoken`        | Manage the context window           |
+| `truncate_text`           | Shortens text to a token budget       | Persist the complete output         |
+| `AgentError`              | Stores structured failure information | Automatically log or display errors |
+| `ConfigError`             | Adds configuration location details   | Validate configuration itself       |
 
 ## 24. Current implementation notes
 

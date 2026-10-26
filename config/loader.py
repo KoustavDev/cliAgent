@@ -18,12 +18,12 @@ AGENT_MD_FILE = "AGENTS.MD"
 
 def get_config_dir() -> Path:
     """Return the platform-specific directory for user configuration."""
-    return Path(user_config_dir("ai-agent"))
+    return Path(user_config_dir("cli-agent"))
 
 
 def get_data_dir() -> Path:
     """Return the platform-specific directory for agent data."""
-    return Path(user_data_dir("ai-agent"))
+    return Path(user_data_dir("cli-agent"))
 
 
 def get_system_config_path() -> Path:
@@ -45,9 +45,9 @@ def _parse_toml(path: Path):
 
 
 def _get_project_config(cwd: Path) -> Path | None:
-    """Find a project config in the workspace's .ai-agent directory."""
+    """Find a project config in the workspace's .cli-agent directory."""
     current = cwd.resolve()
-    agent_dir = current / ".ai-agent"
+    agent_dir = current / ".cli-agent"
 
     if agent_dir.is_dir():
         config_file = agent_dir / CONFIG_FILE_NAME

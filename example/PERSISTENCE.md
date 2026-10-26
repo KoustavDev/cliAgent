@@ -41,10 +41,10 @@ class PersistenceManager
 
 They have different responsibilities:
 
-| Class | Responsibility |
-|---|---|
-| `SessionSnapshot` | Represents the serializable state of a session |
-| `PersistenceManager` | Saves, loads, and lists snapshots |
+| Class                | Responsibility                                 |
+| -------------------- | ---------------------------------------------- |
+| `SessionSnapshot`    | Represents the serializable state of a session |
+| `PersistenceManager` | Saves, loads, and lists snapshots              |
 
 `SessionSnapshot` is the data. `PersistenceManager` performs the file operations.
 
@@ -190,8 +190,8 @@ self.data_dir = get_data_dir()
 Two subdirectories are created:
 
 ```text
-<application data directory>/ai-agent/sessions
-<application data directory>/ai-agent/checkpoints
+<application data directory>/cli-agent/sessions
+<application data directory>/cli-agent/checkpoints
 ```
 
 The constructor creates them if necessary:
@@ -439,14 +439,14 @@ The restoration flow is almost the same as `/resume`:
 
 ## 14. Session versus checkpoint
 
-| Feature | Saved session | Checkpoint |
-|---|---|---|
-| Command | `/save` | `/checkpoint` |
-| Directory | `sessions` | `checkpoints` |
-| Filename | Session ID | Session ID plus timestamp |
-| Purpose | Save the current session | Save a point-in-time version |
+| Feature           | Saved session                               | Checkpoint                       |
+| ----------------- | ------------------------------------------- | -------------------------------- |
+| Command           | `/save`                                     | `/checkpoint`                    |
+| Directory         | `sessions`                                  | `checkpoints`                    |
+| Filename          | Session ID                                  | Session ID plus timestamp        |
+| Purpose           | Save the current session                    | Save a point-in-time version     |
 | Multiple versions | Later save overwrites the same session file | Multiple checkpoints can coexist |
-| Restore command | `/resume <session_id>` | `/restore <checkpoint_id>` |
+| Restore command   | `/resume <session_id>`                      | `/restore <checkpoint_id>`       |
 
 ## 15. Example workflow
 

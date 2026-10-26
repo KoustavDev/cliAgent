@@ -42,13 +42,13 @@ Those concerns are centralized in this file.
 
 ```python
 def get_config_dir() -> Path:
-    return Path(user_config_dir("ai-agent"))
+    return Path(user_config_dir("cli-agent"))
 ```
 
 The system configuration file is:
 
 ```text
-<user config directory>/ai-agent/config.toml
+<user config directory>/cli-agent/config.toml
 ```
 
 `get_system_config_path()` builds this path:
@@ -65,7 +65,7 @@ Using `platformdirs` means the code does not hard-code a Windows, macOS, or Linu
 For a selected working directory, `_get_project_config()` looks for:
 
 ```text
-<working directory>/.ai-agent/config.toml
+<working directory>/.cli-agent/config.toml
 ```
 
 This allows each project to have configuration specific to that project.
@@ -214,7 +214,7 @@ If it is invalid, the loader logs a warning and continues with an empty configur
 
 ### Step 3: Load the project configuration
 
-If `<cwd>/.ai-agent/config.toml` exists, it is parsed and merged over the system configuration.
+If `<cwd>/.cli-agent/config.toml` exists, it is parsed and merged over the system configuration.
 
 ### Step 4: Set the working directory fallback
 
@@ -270,8 +270,8 @@ python main.py --cwd C:/projects/demo
 The loader checks:
 
 ```text
-<user config directory>/ai-agent/config.toml
-C:/projects/demo/.ai-agent/config.toml
+<user config directory>/cli-agent/config.toml
+C:/projects/demo/.cli-agent/config.toml
 C:/projects/demo/AGENT.MD
 ```
 

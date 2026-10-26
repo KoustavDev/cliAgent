@@ -49,9 +49,9 @@ It remembers:
 
 The session is different from the `Agent` class:
 
-| Class | Main responsibility |
-|---|---|
-| `Agent` | Runs the agent loop and coordinates responses |
+| Class     | Main responsibility                           |
+| --------- | --------------------------------------------- |
+| `Agent`   | Runs the agent loop and coordinates responses |
 | `Session` | Owns the state and services used by that loop |
 
 The agent calls services through the session, for example:
@@ -156,7 +156,7 @@ self.discovery_manager = ToolDiscoveryManager(
 The discovery manager searches for project-specific tools in:
 
 ```text
-<cwd>/.ai-agent/tools
+<cwd>/.cli-agent/tools
 ```
 
 It also searches the user configuration directory. Discovered tools are registered into `tool_registry`.
@@ -276,11 +276,11 @@ self.discovery_manager.discover_all()
 This discovers Python tools from:
 
 ```text
-<session cwd>/.ai-agent/tools
+<session cwd>/.cli-agent/tools
 <user config directory>/tools
 ```
 
-This is why a file such as `.ai-agent/tools/test_tool.py` can become available to the agent.
+This is why a file such as `.cli-agent/tools/test_tool.py` can become available to the agent.
 
 ### Step 4: Load user memory
 
@@ -314,7 +314,7 @@ This allows the system prompt to describe the tools that are actually available 
 The `_load_memory()` method reads:
 
 ```text
-<application data directory>/ai-agent/user_memory.json
+<application data directory>/cli-agent/user_memory.json
 ```
 
 The data directory is obtained through [`get_data_dir()`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/config/loader.py>).
@@ -392,15 +392,15 @@ def get_stats(self) -> dict[str, Any]:
 
 The result contains:
 
-| Field | Meaning |
-|---|---|
-| `session_id` | Unique identifier for the session |
-| `created_at` | Session creation time |
-| `turn_count` | Number of agent-loop turns |
-| `message_count` | Number of messages in context |
-| `token_usage` | Accumulated token usage |
-| `tools_count` | Number of available tools |
-| `mcp_servers` | Number of connected MCP tools/servers exposed by the registry |
+| Field           | Meaning                                                       |
+| --------------- | ------------------------------------------------------------- |
+| `session_id`    | Unique identifier for the session                             |
+| `created_at`    | Session creation time                                         |
+| `turn_count`    | Number of agent-loop turns                                    |
+| `message_count` | Number of messages in context                                 |
+| `token_usage`   | Accumulated token usage                                       |
+| `tools_count`   | Number of available tools                                     |
+| `mcp_servers`   | Number of connected MCP tools/servers exposed by the registry |
 
 The CLI displays this information through the `/stats` command.
 
@@ -566,7 +566,7 @@ Session.initialize()
       |
       +-- Connect MCP servers
       +-- Register MCP tools
-      +-- Discover .ai-agent/tools
+      +-- Discover .cli-agent/tools
       +-- Load user memory
       +-- Create context manager
       |
@@ -585,7 +585,7 @@ Save session or close resources
 
 ## Summary
 
-[`agent/session.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/agent/session.py>) defines the runtime container for one AI-agent conversation.
+[`agent/session.py`](<d:/Gen AI/CLI agent.worktrees/ai-coding-agent-main/agent/session.py>) defines the runtime container for one cli-agent conversation.
 
 Its main responsibilities are:
 

@@ -173,15 +173,15 @@ This gives the registry and agent one consistent result format regardless of whi
 
 ### Result fields
 
-| Field | Meaning |
-|---|---|
-| `success` | Whether the operation completed successfully |
-| `output` | Human- or model-readable output |
-| `error` | Error text, if the operation failed |
-| `metadata` | Structured details such as paths or validation errors |
-| `truncated` | Whether the output was shortened |
-| `diff` | File change information, when applicable |
-| `exit_code` | Process exit code for command-based tools |
+| Field       | Meaning                                               |
+| ----------- | ----------------------------------------------------- |
+| `success`   | Whether the operation completed successfully          |
+| `output`    | Human- or model-readable output                       |
+| `error`     | Error text, if the operation failed                   |
+| `metadata`  | Structured details such as paths or validation errors |
+| `truncated` | Whether the output was shortened                      |
+| `diff`      | File change information, when applicable              |
+| `exit_code` | Process exit code for command-based tools             |
 
 ### Successful result
 
@@ -257,7 +257,7 @@ For example:
 ```python
 ToolInvocation(
     params={"path": "config/config.py"},
-    cwd=Path("C:/projects/ai-agent"),
+    cwd=Path("C:/projects/cli-agent"),
 )
 ```
 
@@ -528,9 +528,9 @@ For `ReadFileTool`, the model receives a schema conceptually like:
   "parameters": {
     "type": "object",
     "properties": {
-      "path": {"type": "string"},
-      "offset": {"type": "integer"},
-      "limit": {"type": ["integer", "null"]}
+      "path": { "type": "string" },
+      "offset": { "type": "integer" },
+      "limit": { "type": ["integer", "null"] }
     },
     "required": ["path"]
   }
@@ -565,7 +565,7 @@ Stored in `_tools`.
 These include:
 
 - Built-in tools
-- Custom tools discovered from `.ai-agent/tools`
+- Custom tools discovered from `.cli-agent/tools`
 - Subagent tools
 
 ### MCP tools
@@ -993,7 +993,7 @@ The registry brings several tool sources together:
 ```text
 Built-in tools
       |
-Custom .ai-agent/tools tools
+Custom .cli-agent/tools tools
       |
 MCP tools
       |
